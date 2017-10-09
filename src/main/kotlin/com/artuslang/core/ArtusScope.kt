@@ -2,8 +2,6 @@ package com.artuslang.core
 
 import com.artuslang.core.component.ArtusId
 import com.artuslang.core.component.ArtusScopeResolver
-import java.util.*
-import kotlin.collections.ArrayList
 
 /**
 * Copyright 2017 Frederic Artus Nieto
@@ -20,25 +18,35 @@ import kotlin.collections.ArrayList
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-class ArtusScope(val parent: ArtusScope? = null) {
-    val components = ArrayList<(ArtusId<*>) -> ArtusScope?>()
+open class ArtusScope(val parent: ArtusScope? = null) {
+
+    companion object {
+        fun getParentId(onError: (String) -> String): ArtusId<Relative> = ArtusId(Relative.PARENT, onError)
+    }
+
+    enum class Relative {
+        PARENT
+    }
+
+    val components = arrayListOf<(ArtusId<*>) -> ArtusScope?>({ if (it.base === Relative.PARENT) parent else null})
     val structure = ArrayList<ArtusScopeResolver>()
 
-    fun compile(): BitSet {
+    open fun compile(): ArtusBitArray {
         val errors = ArrayList<String>()
-        structure.map {
+        val ret = structure.map {
             try {
                 return@map it.resolve(this).compile()
             } catch (e: ArtusPathException) {
                 errors.add(e.msg)
             }
-            BitSet()
-        }.fold(BitSet(), {
+            ArtusBitArray()
+        }.fold(ArtusBitArray(), {
             acc, elem ->
-            val ret = BitSet(acc.size() + elem.size())
-            acc.size()
-            ret
+            acc.append(elem)
+            acc
         })
-        return BitSet()
+        if (errors.size > 0)
+            throw ArtusPathMultiException(errors)
+        return ret
     }
 }

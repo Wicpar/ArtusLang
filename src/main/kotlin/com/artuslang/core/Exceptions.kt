@@ -17,3 +17,4 @@ package com.artuslang.core
 */
 
 class ArtusPathException(val msg: String): Exception(msg)
+class ArtusPathMultiException(val msgs: List<String>): Exception(msgs.joinToString("\n"))
