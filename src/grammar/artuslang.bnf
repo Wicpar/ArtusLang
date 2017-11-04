@@ -68,9 +68,9 @@ scopeStatemet ::= identifierChain ';'?
 
 scopeOperatorStatement ::= identifierChain (operator identifierChain)* ';'?
 
-scopeDefinition ::= definition ';'?
+scopeDefinition ::= identifierGroup? definition ';'?
 
-scopeOperatorDefinition ::= definition (operator identifierChain)* ';'?
+scopeOperatorDefinition ::= identifierGroup? definition (operator identifierChain)* ';'?
 
 identifiedScope ::= identifierGroup? definedScope
 

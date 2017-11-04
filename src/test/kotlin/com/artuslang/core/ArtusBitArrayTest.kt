@@ -16,7 +16,7 @@
 
 package com.artuslang.core
 
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 class ArtusBitArrayTest {
 
