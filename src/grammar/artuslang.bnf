@@ -33,9 +33,11 @@
     RB='}'
     DT='.'
     SEMI=';'
+    COLON=':'
     COM=','
     CO='<'
     CC='>'
+    AP='`'
 
     ESC = "regexp:\\(['\"`\\?abtnvfre] | {UNICODE} | {HEXADECIMAL} | {ESCOCT})"
     UNICODE = "regexp:u[0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]"
@@ -55,9 +57,69 @@
 
     NAME_ = "regexp:[a-zA-Z_][0-9a-zA-Z_]*"
 
-    OP = "regexp:[&#|\^@%!:?/*$§+=\-]+"
+    OP = "regexp:('<' | '>')?[&#|\^@%!:?/*$§+=\-]+"
 
   ]
 }
 
-root ::=
+root ::= scopeElement*
+
+scopeStatemet ::= identifierChain ';'?
+
+scopeOperatorStatement ::= identifierChain (operator identifierChain)* ';'?
+
+scopeDefinition ::= definition ';'?
+
+scopeOperatorDefinition ::= definition (operator identifierChain)* ';'?
+
+identifiedScope ::= identifierGroup? definedScope
+
+definedScope ::= definerChain anonymousScope
+
+anonymousScope ::= '{' scopeElement* '}'
+
+scopeElement ::= anonymousScope
+               | scopeStatemet
+               | scopeDefinition
+               | definedScope
+               | identifiedScope
+               | scopeOperatorStatement
+               | scopeOperatorDefinition
+
+
+
+definerChain ::= (identifierChain '.')? definer
+
+definer ::= name templateDef? callDef?
+
+identifierGroup ::= identifierChain+
+
+identifierChain ::= identifier ('.' identifier)*
+
+identifier ::= nameIdentifier | floatIdentifier | integerIdentifier | stringIdentifier | operatorIdentifier
+
+
+nameIdentifier ::=  name template? call?
+
+floatIdentifier ::= FLOAT
+
+integerIdentifier ::= DECIMAL | SDECIMAL | OCTAL | HEXADECIMAL | CHAR | BINARY
+
+stringIdentifier ::= STRING
+
+operatorIdentifier ::= '`' operator '`'
+
+
+template ::= '<' identifierChain (',' identifierChain)? '>'
+
+templateDef ::= '<' definition (',' definition)?  '>'
+
+call ::= '(' identifierChain (',' identifierChain)? ')'
+
+callDef ::= '(' definition (',' definition)? ')'
+
+definition ::= name ':' identifierChain
+
+operator ::= '<' | '>' | ':' | OP
+
+name ::= NAME_

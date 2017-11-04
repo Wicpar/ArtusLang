@@ -38,12 +38,14 @@ CHAR='([^'\\]|{ESC})'
 STRING=\"([^\"\\]|{ESC})*\"
 NAME_=[a-zA-Z_][0-9a-zA-Z_]*
 
-OP=[&#|\^@%!:?/*$§+=\-]+
+OP=[&#|\^@%!?/*$§+=\-]+ | ('<' | '>' | ':')[&#|\^@%!<>:?/*$§+=\-]+
 
 
 %%
 <YYINITIAL> {
   {WHITE_SPACE}      { return WHITE_SPACE; }
+
+  {OP}                 { return OP; }
 
   "("                  { return LP; }
   ")"                  { return RP; }
@@ -52,10 +54,11 @@ OP=[&#|\^@%!:?/*$§+=\-]+
   "."                  { return DT; }
   ","                  { return COM; }
   ";"                  { return SEMI; }
+  ":"                  { return COLON; }
   "<"                  { return CO; }
   ">"                  { return CC; }
+  "`"                  { return AP; }
 
-  {OP}                 { return OP; }
   {ESC}                { return ESC; }
   {UNICODE}            { return UNICODE; }
   {ESCOCT}             { return ESCOCT; }
