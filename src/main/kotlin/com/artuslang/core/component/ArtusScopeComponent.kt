@@ -16,23 +16,13 @@
 
 package com.artuslang.core.component
 
-class ArtusId<out T>(val base: T, val onError: (message: String)-> String) {
+import com.artuslang.core.ArtusScope
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is ArtusId<*>) return false
-
-        if (base != other.base) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        return base?.hashCode() ?: 0
-    }
-
-    override fun toString(): String {
-        return base.toString()
-    }
-
-}
+/**
+ * Created on 10/10/2017 by Frederic
+ */
+class ArtusScopeComponent(
+        val isAvailableFor: (ArtusId<*>) -> Boolean,
+        val ordinal: Int,
+        val resolve: (ArtusId<*>) -> ArtusScope
+)

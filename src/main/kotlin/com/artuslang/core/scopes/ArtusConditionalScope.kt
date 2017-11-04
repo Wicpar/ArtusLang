@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package com.artuslang.core.component
+package com.artuslang.core.scopes
 
+import com.artuslang.core.ArtusBitArray
 import com.artuslang.core.ArtusScope
+import com.artuslang.core.component.ArtusScopeResolver
 
-class ArtusScopeResolver(val path: ArtusPath, val rootScope: ArtusScope) {
-    fun resolve(relative: ArtusScope): ArtusScope {
-        return path.resolve(relative, rootScope)
-    }
+/**
+ * Created on 10/10/2017 by Frederic
+ */
+class ArtusConditionalScope(override val parent: ArtusScope, val trueScope: ArtusScopeResolver, val falseScope: ArtusScopeResolver, val condition: (ArtusConditionalScope) -> Boolean): ArtusScope(parent) {
 
-    fun multiResolve(relative: ArtusScope): List<ArtusScope> {
-        return path.multiResolve(relative, rootScope)
+    override fun compile(lastState: ArtusBitArray): ArtusBitArray {
+        return if (condition(this))
+            trueScope.resolve(parent).compile(lastState)
+        else
+            falseScope.resolve(parent).compile(lastState)
     }
 }

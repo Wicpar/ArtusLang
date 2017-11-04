@@ -1,5 +1,5 @@
 <component name="CopyrightManager">
-  <settings default="ArtusLang">
+  <settings>
     <module2copyright>
       <element module="Project Files" copyright="ArtusLang" />
     </module2copyright>

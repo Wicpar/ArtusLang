@@ -14,25 +14,18 @@
  * limitations under the License.
  */
 
-package com.artuslang.core.component
+package com.artuslang.core.scopes
 
-class ArtusId<out T>(val base: T, val onError: (message: String)-> String) {
+import com.artuslang.core.ArtusBitArray
+import com.artuslang.core.ArtusScope
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is ArtusId<*>) return false
+/**
+ * Created on 10/10/2017 by Frederic
+ */
+class EndScope(parent: ArtusScope? = null, val compileFunc: (ArtusBitArray) -> ArtusBitArray) : ArtusScope(parent) {
+    constructor(parent: ArtusScope? = null, appendValue: ArtusBitArray) : this(parent, { it.append(appendValue) })
 
-        if (base != other.base) return false
-
-        return true
+    override fun compile(lastState: ArtusBitArray): ArtusBitArray {
+        return compileFunc(lastState)
     }
-
-    override fun hashCode(): Int {
-        return base?.hashCode() ?: 0
-    }
-
-    override fun toString(): String {
-        return base.toString()
-    }
-
 }
