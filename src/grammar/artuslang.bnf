@@ -64,13 +64,9 @@
 
 root ::= scopeElement*
 
-scopeStatemet ::= identifierChain ';'?
+scopeStatement ::= identifierChain (operator operatorIdentifierChain)* ';'?
 
-scopeOperatorStatement ::= identifierChain (operator identifierChain)* ';'?
-
-scopeDefinition ::= identifierGroup? definition ';'?
-
-scopeOperatorDefinition ::= identifierGroup? definition (operator identifierChain)* ';'?
+scopeDefinition ::= identifierGroup? definition (operator operatorIdentifierChain)* ';'?
 
 identifiedScope ::= identifierGroup? definedScope
 
@@ -79,18 +75,17 @@ definedScope ::= definerChain anonymousScope
 anonymousScope ::= '{' scopeElement* '}'
 
 scopeElement ::= anonymousScope
-               | scopeStatemet
+               | scopeStatement
                | scopeDefinition
                | definedScope
                | identifiedScope
-               | scopeOperatorStatement
-               | scopeOperatorDefinition
 
 
+operatorIdentifierChain ::= identifierChain | '(' operatorIdentifierChain (operator operatorIdentifierChain)* ')'
 
-definerChain ::= (identifierChain '.')? definer
+definerChain ::= (operatorIdentifierChain '.')? definer
 
-definer ::= name templateDef? callDef?
+definer ::= denomination templateDef? callDef?
 
 identifierGroup ::= identifierChain+
 
@@ -99,7 +94,7 @@ identifierChain ::= identifier ('.' identifier)*
 identifier ::= nameIdentifier | floatIdentifier | integerIdentifier | stringIdentifier | operatorIdentifier
 
 
-nameIdentifier ::=  name template? call?
+nameIdentifier ::=  denomination template? call?
 
 floatIdentifier ::= FLOAT
 
@@ -110,16 +105,16 @@ stringIdentifier ::= STRING
 operatorIdentifier ::= '`' operator '`'
 
 
-template ::= '<' identifierChain (',' identifierChain)? '>'
+template ::= '<' operatorIdentifierChain (',' operatorIdentifierChain)? '>'
 
 templateDef ::= '<' definition (',' definition)?  '>'
 
-call ::= '(' identifierChain (',' identifierChain)? ')'
+call ::= '(' operatorIdentifierChain (',' operatorIdentifierChain)? ')'
 
 callDef ::= '(' definition (',' definition)? ')'
 
-definition ::= name ':' identifierChain
+definition ::= denomination ':' operatorIdentifierChain
 
 operator ::= '<' | '>' | ':' | OP
 
-name ::= NAME_
+denomination ::= NAME_
