@@ -27,74 +27,43 @@
   psiImplPackage="com.artuslang.lang.psi.impl"
 
   tokens=[
-    LP='('
-    RP=')'
-    LB='{'
-    RB='}'
-    DT='.'
-    SEMI=';'
-    COLON=':'
-    COM=','
-    CO='<'
-    CC='>'
-    AP='`'
+    EOL='regexp:\R'
+    WHITE_SPACE='regexp:\s+'
 
-    ESC = "regexp:\\(['\"`\\?abtnvfre] | {UNICODE} | {HEXADECIMAL} | {ESCOCT})"
-    UNICODE = "regexp:u[0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]"
-    //BUNICODE = "regexp:U[0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]"
-    ESCOCT = "regexp:[0-7] [0-7] [0-7]"
+//    ESC = "regexp:(\\(['\"`\\?abtnvfre] | {UNICODE} | {HEXADECIMAL} | {ESCOCT}))"
+//    UNICODE = "regexp:(u[0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])"
+//    BUNICODE = "regexp:U[0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]"
+//    ESCOCT = "regexp:([0-7] [0-7] [0-7])"
 
-    DECIMAL = "regexp:[1-9][0-9]*"
-    SDECIMAL = "regexp:-{DECIMAL}"
+    DECIMAL = "regexp:[0-9]+"
+//    SDECIMAL = "regexp:-{DECIMAL}"
     OCTAL = "regexp:0o[0-7]+"
     HEXADECIMAL = "regexp:0x[0-9a-fA-F]+"
     BINARY = "regexp:0b[0-1]+"
     FLOAT = "regexp:-?([1-9][0-9]* | '0')(\.[0-9]*)?(('e' | 'E')(-|\+)?[1-9][0-9]*)?"
 
-    CHAR = "regexp:'([^'\\]|{ESC})'"
-
-    STRING = "regexp:\"([^\"\\]|{ESC})*\""
+//    CHAR = "regexp:'([^'\\]|{ESC})'"
+    CHAR = "regexp:'([^'\\]|(\\(['\"`\\?abtnvfre] | (u[0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]) | 0x[0-9a-fA-F][0-9a-fA-F] | ([0-7] [0-7] [0-7]))))'"
+//
+//    STRING="regexp:(\"([^\"\\]|{ESC})*\")"
+//    EXPR = "regexp:(\`([^\"\\]|{ESC})*\`)"
+    STRING="regexp:(\"([^\"\\]|(\\(['\"`\\?abtnvfre] | (u[0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]) | 0x[0-9a-fA-F][0-9a-fA-F] | ([0-7] [0-7] [0-7]))))*\")"
+    EXPR = "regexp:(\`([^\"\\]|(\\(['\"`\\?abtnvfre] | (u[0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]) | 0x[0-9a-fA-F][0-9a-fA-F] | ([0-7] [0-7] [0-7]))))*\`)"
 
     NAME_ = "regexp:[a-zA-Z_][0-9a-zA-Z_]*"
 
-    OP = "regexp:('<' | '>')?[&#|\^@%!:?/*$§+=\-]+"
+    OP = "regexp:(([;\[\](){}.,])|([&#|\^@%!:?/*$§+=<>\-][.,&#|\^@%!:?/*$§+=<>\-]*))"
 
   ]
 }
 
-root ::= scopeElement*
-
-scopeStatement ::= identifierChain (operator operatorIdentifierChain)* ';'?
-
-scopeDefinition ::= identifierGroup? definition (operator operatorIdentifierChain)* ';'?
-
-identifiedScope ::= identifierGroup? definedScope
-
-definedScope ::= definerChain anonymousScope
-
-anonymousScope ::= '{' scopeElement* '}'
-
-scopeElement ::= anonymousScope
-               | scopeStatement
-               | scopeDefinition
-               | definedScope
-               | identifiedScope
+grammar ::= (identifier | operator)*
 
 
-operatorIdentifierChain ::= identifierChain | '(' operatorIdentifierChain (operator operatorIdentifierChain)* ')'
-
-definerChain ::= (operatorIdentifierChain '.')? definer
-
-definer ::= denomination templateDef? callDef?
-
-identifierGroup ::= identifierChain+
-
-identifierChain ::= identifier ('.' identifier)*
-
-identifier ::= nameIdentifier | floatIdentifier | integerIdentifier | stringIdentifier | operatorIdentifier
+identifier ::= stringIdentifier | operatorIdentifier | nameIdentifier | floatIdentifier | integerIdentifier
 
 
-nameIdentifier ::=  denomination template? call?
+nameIdentifier ::=  NAME_
 
 floatIdentifier ::= FLOAT
 
@@ -102,19 +71,6 @@ integerIdentifier ::= DECIMAL | SDECIMAL | OCTAL | HEXADECIMAL | CHAR | BINARY
 
 stringIdentifier ::= STRING
 
-operatorIdentifier ::= '`' operator '`'
+operatorIdentifier ::= EXPR
 
-
-template ::= '<' operatorIdentifierChain (',' operatorIdentifierChain)? '>'
-
-templateDef ::= '<' definition (',' definition)?  '>'
-
-call ::= '(' operatorIdentifierChain (',' operatorIdentifierChain)? ')'
-
-callDef ::= '(' definition (',' definition)? ')'
-
-definition ::= denomination ':' operatorIdentifierChain
-
-operator ::= '<' | '>' | ':' | OP
-
-denomination ::= NAME_
+operator ::= OP
