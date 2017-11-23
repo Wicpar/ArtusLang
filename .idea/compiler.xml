@@ -2,8 +2,15 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel>
+      <module name="artuslang-artuslang_main" target="1.8" />
+      <module name="artuslang-artuslang_test" target="1.8" />
       <module name="artuslang_main" target="1.8" />
+      <module name="artuslang_standalone" target="1.8" />
+      <module name="artuslang_standaloneMain" target="1.8" />
+      <module name="artuslang_standaloneTest" target="1.8" />
       <module name="artuslang_test" target="1.8" />
+      <module name="standalone_main" target="1.8" />
+      <module name="standalone_test" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

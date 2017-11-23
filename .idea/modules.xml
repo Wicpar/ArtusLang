@@ -5,6 +5,9 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/artuslang.iml" filepath="$PROJECT_DIR$/.idea/modules/artuslang.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/artuslang_main.iml" filepath="$PROJECT_DIR$/.idea/modules/artuslang_main.iml" group="artuslang" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/artuslang_test.iml" filepath="$PROJECT_DIR$/.idea/modules/artuslang_test.iml" group="artuslang" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/standalone.iml" filepath="$PROJECT_DIR$/.idea/modules/standalone.iml" group="standalone" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/standalone/standalone_main.iml" filepath="$PROJECT_DIR$/.idea/modules/standalone/standalone_main.iml" group="standalone" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/standalone/standalone_test.iml" filepath="$PROJECT_DIR$/.idea/modules/standalone/standalone_test.iml" group="standalone" />
     </modules>
   </component>
 </project>
