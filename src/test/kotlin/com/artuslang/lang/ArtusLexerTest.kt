@@ -16,9 +16,17 @@
 
 package com.artuslang.lang
 
-import com.intellij.lexer.FlexAdapter
+import com.artuslang.core.ArtusScope
+import org.junit.jupiter.api.Test
 
 /**
- * Created on 23/11/2017 by Frederic
+ * Created on 06/12/2017 by Frederic
  */
-class ArtusLexerAdapter: FlexAdapter(_ArtusLexer())
+internal class ArtusLexerTest {
+
+    @Test
+    fun testExec() {
+        val lexer = ArtusLexer(ArtusScope(), "", "\"\"\"\n\"\"\"")
+        println(lexer.findAll().map { it.type.name })
+    }
+}

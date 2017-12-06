@@ -16,11 +16,12 @@
 
 package com.artuslang.core.component
 
-class ArtusId<out T>(val base: T, val onError: (message: String)-> String) {
+class ArtusId(val base: String, val onError: (message: String)-> String) {
 
-    override fun equals(other: Any?): Boolean {
+    override operator fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is ArtusId<*>) return false
+        if (other is String) return base == other
+        if (other !is ArtusId) return false
 
         if (base != other.base) return false
 
@@ -28,11 +29,11 @@ class ArtusId<out T>(val base: T, val onError: (message: String)-> String) {
     }
 
     override fun hashCode(): Int {
-        return base?.hashCode() ?: 0
+        return base.hashCode()
     }
 
     override fun toString(): String {
-        return base.toString()
+        return base
     }
 
 }

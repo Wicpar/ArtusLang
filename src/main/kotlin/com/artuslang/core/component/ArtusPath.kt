@@ -19,17 +19,17 @@ package com.artuslang.core.component
 import com.artuslang.core.ArtusPathException
 import com.artuslang.core.ArtusScope
 
-class ArtusPath(val relative: Boolean, val succession: List<ArtusId<*>>) {
+class ArtusPath(val relative: Boolean, val succession: List<ArtusId>) {
 
     fun resolve(thisScope: ArtusScope, rootScope: ArtusScope): ArtusScope {
         val scope = if (relative) thisScope else rootScope
         return succession.foldIndexed(scope, {
-            idx: Int, acc: ArtusScope, elem: ArtusId<*> ->
+            idx: Int, acc: ArtusScope, elem: ArtusId ->
             acc.components
-                    .filter { it.isAvailableFor(elem) }
+                    .filter { it.isAvailableFor(elem.base) }
                     .sortedBy { it.ordinal }
                     .firstOrNull()
-                    ?.resolve?.invoke(elem) ?: throw ArtusPathException(elem.onError("component of path ${succession.subList(0, idx + 1)} not found"))
+                    ?.resolve?.invoke(elem.base) ?: throw ArtusPathException(elem.onError("component of path ${succession.subList(0, idx + 1)} not found"))
         })
     }
 
@@ -39,12 +39,12 @@ class ArtusPath(val relative: Boolean, val succession: List<ArtusId<*>>) {
     fun multiResolve(thisScope: ArtusScope, rootScope: ArtusScope): List<ArtusScope> {
         val scope = if (relative) thisScope else rootScope
         return succession.fold(listOf(scope), {
-            acc: List<ArtusScope>, elem: ArtusId<*> ->
+            acc: List<ArtusScope>, elem: ArtusId ->
             acc.map {
                 it.components
-                        .filter { it.isAvailableFor(elem) }
+                        .filter { it.isAvailableFor(elem.base) }
                         .sortedBy { it.ordinal }
-                        .map { it.resolve(elem) }
+                        .map { it.resolve(elem.base) }
             }.fold(listOf(), { acc, it -> acc + it })
         })
     }

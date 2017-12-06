@@ -14,20 +14,27 @@
  * limitations under the License.
  */
 
-package com.artuslang.core
+package com.artuslang.lang.matching
 
-import com.artuslang.lang.ArtusParserDefinition
-import com.intellij.psi.PsiElement
+import com.artuslang.core.ArtusScope
+import com.artuslang.lang.ArtusLexer
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 /**
- * Created on 21/11/2017 by Frederic
+ * Created on 06/12/2017 by Frederic
  */
-fun main(args: Array<String>) {
-    val ret = LightPsi.parseFile("a", "a b b c += .; \n .; ?.", ArtusParserDefinition()) ?: return
+internal class MatcherTest {
 
-    fun printChildren(elem: PsiElement) {
-        println(elem.text)
-        elem.children.forEach(::printChildren)
+    @Test
+    fun find() {
+        val matcher = Matcher(TokenType(""), "abcd")
+        val lexer = ArtusLexer(ArtusScope(), "", "abcdefgh")
+        lexer.index = 1
+        val res = matcher.find(lexer)
+        assertEquals("abcd", res?.text)
+        assertEquals(1, res?.textRange?.start)
+        assertEquals(4, res?.textRange?.endInclusive)
     }
-    printChildren(ret)
+
 }

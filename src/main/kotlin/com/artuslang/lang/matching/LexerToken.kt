@@ -14,26 +14,10 @@
  * limitations under the License.
  */
 
-package com.artuslang.lang
-
-import com.intellij.extapi.psi.PsiFileBase
-import com.intellij.openapi.fileTypes.FileType
-import com.intellij.psi.FileViewProvider
-import javax.swing.Icon
+package com.artuslang.lang.matching
 
 /**
- * Created on 23/11/2017 by Frederic
+ * Created on 06/12/2017 by Frederic
  */
-class ArtusFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, ArtusLanguage) {
-    override fun getFileType(): FileType {
-        return ArtusFileType
-    }
-
-    override fun toString(): String {
-        return "Artus File"
-    }
-
-    override fun getIcon(flags: Int): Icon? {
-        return super.getIcon(flags)
-    }
+class LexerToken(val type: TokenType, val text: String, val textRange: IntRange) {
 }

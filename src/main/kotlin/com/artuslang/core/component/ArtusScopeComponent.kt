@@ -21,8 +21,12 @@ import com.artuslang.core.ArtusScope
 /**
  * Created on 10/10/2017 by Frederic
  */
-class ArtusScopeComponent(
-        val isAvailableFor: (ArtusId<*>) -> Boolean,
+class ArtusScopeComponent (
+        val isAvailableFor: (String) -> Boolean,
         val ordinal: Int,
-        val resolve: (ArtusId<*>) -> ArtusScope
-)
+        val resolve: (String) -> ArtusScope
+) : Comparable<ArtusScopeComponent> {
+    override fun compareTo(other: ArtusScopeComponent): Int {
+        return ordinal.compareTo(other.ordinal)
+    }
+}

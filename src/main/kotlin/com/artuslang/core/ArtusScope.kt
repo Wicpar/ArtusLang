@@ -19,18 +19,27 @@ package com.artuslang.core
 import com.artuslang.core.component.ArtusId
 import com.artuslang.core.component.ArtusScopeComponent
 import com.artuslang.core.component.ArtusScopeResolver
+import java.util.SortedSet
+import kotlin.collections.ArrayList
 
 open class ArtusScope(open val parent: ArtusScope? = null) {
 
-    companion object {
-        fun getParentId(onError: (String) -> String): ArtusId<Relative> = ArtusId(Relative.PARENT, onError)
+
+    val components: SortedSet<ArtusScopeComponent> = sortedSetOf(ArtusScopeComponent({parent != null && it == "parent"}, 0, { parent!! }))
+
+    fun getOrDefault(str: String): ArtusScope {
+        return components.fold(null as ArtusScope?, {acc, it -> acc ?: if (it.isAvailableFor(str)) it.resolve(str) else null }) ?: {
+            val scope = ArtusScope()
+            val ret = ArtusScopeComponent({it == str}, 0, {scope})
+            components.add(ret)
+            scope
+        }()
     }
 
-    enum class Relative {
-        PARENT
+    fun get(id: ArtusId) {
+        components.fold(null as ArtusScope?, {acc, it -> acc ?: if (it.isAvailableFor(id.base)) it.resolve(id.base) else null }) ?: id.onError("component of path ${id.base} not found")
     }
 
-    val components = arrayListOf(ArtusScopeComponent({parent != null && it.base === Relative.PARENT}, 0, { parent!! }))
     val structure = ArrayList<ArtusScopeResolver>()
 
 

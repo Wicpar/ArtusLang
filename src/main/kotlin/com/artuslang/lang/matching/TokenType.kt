@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package com.artuslang.lang
-
-import com.intellij.openapi.fileTypes.LanguageFileType
-import javax.swing.Icon
+package com.artuslang.lang.matching
 
 /**
- * Created on 23/11/2017 by Frederic
+ * Created on 06/12/2017 by Frederic
  */
-object ArtusFileType: LanguageFileType(ArtusLanguage) {
-    override fun getName(): String = "Artus file"
-    override fun getDescription(): String = "Artus language file"
-    override fun getDefaultExtension(): String = "artus"
-    override fun getIcon(): Icon? = null
+class TokenType(val name: String) {
+
 }
