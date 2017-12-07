@@ -23,7 +23,7 @@ import com.artuslang.lang.matching.MatcherStack
 import com.artuslang.lang.matching.TokenType
 import org.apache.commons.jexl3.JexlBuilder
 import org.apache.commons.jexl3.introspection.JexlSandbox
-import java.util.*
+import java.util.regex.Pattern
 
 /**
  * Created on 06/12/2017 by Frederic
@@ -39,9 +39,13 @@ object JEXLConfiguration {
         sandbox.white(ArtusContextType::class.java.name)
         sandbox.white(TokenType::class.java.name)
         sandbox.white(MatcherStack::class.java.name)
+        sandbox.white(Map::class.java.name)
+        sandbox.white(List::class.java.name)
         sandbox.white(HashMap::class.java.name)
+        sandbox.white(ArrayList::class.java.name)
         sandbox.white(ArtusScope::class.java.name)
         sandbox.white(LexerToken::class.java.name)
+        sandbox.white(Pattern::class.java.name)
         sandbox
     }()).create()
 }

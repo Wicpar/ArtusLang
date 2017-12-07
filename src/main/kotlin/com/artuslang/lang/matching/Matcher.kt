@@ -17,12 +17,13 @@
 package com.artuslang.lang.matching
 
 import com.artuslang.lang.ArtusLexer
+import org.intellij.lang.annotations.Language
 
 /**
  * Created on 06/12/2017 by Frederic
  */
-open class Matcher(val type: TokenType, pattern: String, val group: Int = 1) {
-    val regex = Regex("(?s)^($pattern).*")
+open class Matcher(val type: TokenType, @Language("RegExp") pattern: String, val group: Int = 1) {
+    val regex = Regex("^($pattern).*", setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.UNIX_LINES))
     fun find(lexer: ArtusLexer): LexerToken? {
         val res = regex.find(lexer.sequence, 0) ?: return null
         val group = res.groups[group] ?: return null

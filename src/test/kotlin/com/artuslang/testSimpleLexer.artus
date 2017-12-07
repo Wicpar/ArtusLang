@@ -1,0 +1,46 @@
+"""
+lexer.includeFromPath("..\artus_repository\artus_lang\artus_module_util.artus");
+
+var literalMatcher = repo.getUtil("literalMatcher");
+var endScript = repo.getUtil("endScript");
+//var bo = repo.getMatcher("{") ?: repo.registerMatcher("{", "\{");
+var bo = literalMatcher("{");
+
+var space = repo.registerMatcher("space", "[\p{Z}\n\r]+");
+var name = repo.registerMatcher("name", "[\p{Pc}\p{L}\p{M}\p{No}][\p{Pc}\p{L}\p{M}\p{N}]*");
+var dot = repo.getMatcher(".") ?: repo.registerMatcher(".", "\.");
+var namespace = repo.registerMatcher("namespace", "namespace");
+var bo = repo.getMatcher("{") ?: repo.registerMatcher("{", "\{");
+var bc = repo.getMatcher("}") ?: repo.registerMatcher("}", "\}");
+var error = repo.getMatcher("error") ?: log("severe", "failed to find error matcher");
+
+var mainStack = repo.registerMatcherStack("main", [namespace, space, error]);
+var namespaceStack = repo.registerMatcherStack("namespace", [name, space, error]);
+var namespaceNextStack = repo.registerMatcherStack("namespaceNext", [bo, dot, space, error]);
+var blockStack = repo.registerMatcherStack("block", [namespace, bc, space, error]);
+
+var mainCtx = repo.registerContextType("main", mainStack, {
+    namespace.type: "lexer.pushContext(repo.getContextType('namespaceName'))",
+    error.type: "log('severe', 'expected: <space>, namespace')"
+});
+var namespaceNameCtx = repo.registerContextType("namespaceName", namespaceStack, {
+    name.type: "lexer.changeContext(repo.getContextType('namespaceNext'), scope.getOrDefault(token.text))",
+    error.type: "log('severe', 'expected: <space>, name')"
+});
+var namespaceNextCtx = repo.registerContextType("namespaceNext", namespaceNextStack, {
+    dot.type: "lexer.changeContext(repo.getContextType('namespaceName'))",
+    bo.type: "lexer.changeContext(repo.getContextType('block'))",
+    error.type: "log('severe', 'expected: <space>, ., {')"
+});
+var blockCtx = repo.registerContextType("block", blockStack, {
+    namespace.type: "lexer.pushContext(repo.getContextType('namespaceName'))",
+    bc.type: "lexer.popContext()",
+    error.type: "log('severe', 'expected: <space>, namespace, }')"
+});
+endScript(mainCtx);
+"""
+
+namespace aa.bb.cc.dd {
+    namespace ee {}
+    namespace ff {}
+}

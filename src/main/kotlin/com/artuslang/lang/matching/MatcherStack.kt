@@ -22,9 +22,9 @@ import java.util.*
 /**
  * Created on 06/12/2017 by Frederic
  */
-class MatcherStack(list: Collection<OrderedMatcher> = listOf()) {
+class MatcherStack(val name: String, list: Collection<OrderedMatcher> = listOf()) {
 
-    constructor(list: List<Matcher>): this(list.mapIndexed { index, matcher -> OrderedMatcher(index, matcher) } as Collection<OrderedMatcher>)
+    constructor(name: String, list: List<Matcher>): this(name, list.mapIndexed { index, matcher -> OrderedMatcher(index, matcher) } as Collection<OrderedMatcher>)
 
     private val lst = PriorityQueue<OrderedMatcher>(list)
 
@@ -47,4 +47,7 @@ class MatcherStack(list: Collection<OrderedMatcher> = listOf()) {
         return lst.fold(null as LexerToken?, { acc, it -> acc ?: it.matcher.find(lexer) })
     }
 
+    override fun toString(): String {
+        return lst.joinToString(", ") { it.matcher.type.name }
+    }
 }

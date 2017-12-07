@@ -25,27 +25,7 @@ class ArtusPath(val relative: Boolean, val succession: List<ArtusId>) {
         val scope = if (relative) thisScope else rootScope
         return succession.foldIndexed(scope, {
             idx: Int, acc: ArtusScope, elem: ArtusId ->
-            acc.components
-                    .filter { it.isAvailableFor(elem.base) }
-                    .sortedBy { it.ordinal }
-                    .firstOrNull()
-                    ?.resolve?.invoke(elem.base) ?: throw ArtusPathException(elem.onError("component of path ${succession.subList(0, idx + 1)} not found"))
-        })
-    }
-
-    /**
-     * resolves all possible paths ordered naturally
-     */
-    fun multiResolve(thisScope: ArtusScope, rootScope: ArtusScope): List<ArtusScope> {
-        val scope = if (relative) thisScope else rootScope
-        return succession.fold(listOf(scope), {
-            acc: List<ArtusScope>, elem: ArtusId ->
-            acc.map {
-                it.components
-                        .filter { it.isAvailableFor(elem.base) }
-                        .sortedBy { it.ordinal }
-                        .map { it.resolve(elem.base) }
-            }.fold(listOf(), { acc, it -> acc + it })
+            acc.components[elem.base] ?: throw ArtusPathException(elem.onError("component of path ${succession.subList(0, idx + 1)} not found"))
         })
     }
 }

@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package com.artuslang.lang.matching
+package com.artuslang.lang.util
 
 /**
- * Created on 06/12/2017 by Frederic
+ * Created on 07/12/2017 by Frederic
  */
-class TokenType(val name: String) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is TokenType) return false
+class FilePos(val line: Int, val offset: Int) {
 
-        if (name != other.name) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        return name.hashCode()
+    override fun toString(): String {
+        return "($line:$offset)"
     }
 }

@@ -18,18 +18,27 @@ package com.artuslang.lang
 
 import com.artuslang.core.ArtusScope
 import com.artuslang.lang.matching.LexerToken
-import com.artuslang.lang.matching.Matcher
-import com.artuslang.lang.matching.MatcherStack
-import com.artuslang.lang.matching.TokenType
-import org.apache.commons.jexl3.JexlContext
-import org.apache.commons.jexl3.ObjectContext
+import com.artuslang.lang.util.FilePos
+import com.artuslang.lang.util.FilePosRange
+import java.io.File
+import java.net.URL
 import java.util.*
-import kotlin.collections.HashMap
 
 /**
  * Created on 06/12/2017 by Frederic
  */
-class ArtusLexer(val globalScope: ArtusScope, val origin: String, charSequence: CharSequence) {
+class ArtusLexer(val globalScope: ArtusScope, val origin: String, charSequence: CharSequence, contextType: ArtusContextType = LexerDefaults.defaultContextType) {
+
+    @JvmOverloads
+    fun includeFromPath(string: String, contextType: ArtusContextType = LexerDefaults.defaultContextType) {
+        ArtusLexer(globalScope, string, File(string).readText(), contextType).findAll()
+    }
+
+    @JvmOverloads
+    fun includeFromUrl(string: String, contextType: ArtusContextType = LexerDefaults.defaultContextType) {
+        ArtusLexer(globalScope, string, URL(string).readText(), contextType).findAll()
+    }
+
     private val contextStack = Stack<ArtusContext>()
     val context: ArtusContext
         @JvmName("getContext")
@@ -42,18 +51,39 @@ class ArtusLexer(val globalScope: ArtusScope, val origin: String, charSequence: 
     fun pushContext(ctxType: ArtusContextType, artusScope: ArtusScope = context.scope) {
         contextStack.push(ArtusContext(ctxType, this, artusScope))
     }
+
+    @JvmOverloads
+    fun changeContext(ctxType: ArtusContextType, artusScope: ArtusScope = context.scope) {
+        contextStack.pop()
+        contextStack.push(ArtusContext(ctxType, this, artusScope))
+    }
+
     init {
-        pushContext(LexerDefaults.defaultContextType, globalScope)
+        pushContext(contextType, globalScope)
+    }
+
+    private val linesIndexes = charSequence.mapIndexed { index, c -> Pair(index, c) }.filter { it.second == '\n' }.map { it.first }
+    fun getFilePos(pos: Int): FilePos {
+        val line = linesIndexes.indexOfFirst { it > pos }.let { if (it == -1) 0 else it }
+        val linePos = if (line == 0) 0 else linesIndexes[line - 1]
+        val offset = pos - linePos
+        return FilePos(line, offset)
+    }
+    fun getFilePosRange(pos: IntRange): FilePosRange {
+        return FilePosRange(getFilePos(pos.start), getFilePos(pos.endInclusive))
     }
 
     var index = 0
     var sequence = charSequence
+
     fun hasNext(): Boolean {
         return sequence.isNotEmpty()
     }
+
     fun findNext(): LexerToken {
         return context.type.findNext(this)
     }
+
     fun findAll(): List<LexerToken> {
         val lst = arrayListOf<LexerToken>()
         while(hasNext())
@@ -62,61 +92,3 @@ class ArtusLexer(val globalScope: ArtusScope, val origin: String, charSequence: 
     }
 }
 
-object LexerDefaults {
-    val error = TokenType("error")
-    val scriptLimit = TokenType("scriptLimit")
-    val scriptContent = TokenType("scriptContent")
-    val defaultTokenMap = listOf(error, scriptContent, scriptLimit).associate { Pair(it.name, it) }
-    val errorMatcher = Matcher(error, ".")
-    val headerLimitMatcher = Matcher(scriptLimit, "\"\"\"")
-    val headerContentMatcher = Matcher(scriptContent, "(.*?)\"\"\"", 2)
-    val defaultMatcherMap = listOf(errorMatcher, headerLimitMatcher, headerContentMatcher).associate { Pair(it.type.name, it) }
-    val defaultMatcherStack = MatcherStack(listOf(headerLimitMatcher, errorMatcher))
-    val scriptMatcherStack = MatcherStack(listOf(headerLimitMatcher, headerContentMatcher, errorMatcher))
-    val matcherStackMap = mapOf(Pair("default", defaultMatcherStack), Pair("script", scriptMatcherStack))
-    val defaultContextType = ArtusContextType("default", defaultMatcherStack, mapOf(Pair(scriptLimit, "lexer.pushContext(repo.contextTypes.get('script'))")))
-    val scriptContextType = ArtusContextType("default", scriptMatcherStack, mapOf(Pair(scriptLimit, "lexer.popContext()"), Pair(scriptContent, "eval(token.text)")))
-    val contextMap = mapOf(Pair("default", defaultContextType), Pair("script", scriptContextType))
-}
-
-object GlobalRepo {
-    val tokens: HashMap<String, TokenType> = HashMap(LexerDefaults.defaultTokenMap)
-    val matchers: HashMap<String, Matcher> = HashMap(LexerDefaults.defaultMatcherMap)
-    val matcherStacks: HashMap<String, MatcherStack> = HashMap(LexerDefaults.matcherStackMap)
-    val contextTypes: HashMap<String, ArtusContextType> = HashMap(LexerDefaults.contextMap)
-}
-
-class ArtusContext(val type: ArtusContextType, val lexer: ArtusLexer, val scope: ArtusScope) {
-    /**
-     * only for actions
-     */
-    lateinit var token: LexerToken
-    val repo = GlobalRepo
-    val jexl: JexlContext = ObjectContext(JEXLConfiguration.jexl, this)
-    fun eval(str: String): Any? {
-        return JEXLConfiguration.jexl.createScript(str).execute(jexl)
-    }
-}
-
-class ArtusContextType(val name: String, private val matcherStack: MatcherStack, actions: Map<TokenType, String>) {
-
-    private val actions: Map<TokenType, ContextAction> = actions.map { Pair(it.key, object: ContextAction {
-        val script = JEXLConfiguration.jexl.createScript(it.value)
-        override fun run(ctx: JexlContext) {
-            script.execute(ctx)
-        }
-    }) }.associate { it }
-
-    fun findNext(lexer: ArtusLexer): LexerToken {
-        val token = matcherStack.findNext(lexer) ?: throw ArtusLexerException("${lexer.origin}: no token matched at index ${lexer.index}")
-        lexer.context.token = token
-        actions[token.type]?.run(lexer.context.jexl)
-        return token
-    }
-
-    interface ContextAction {
-        fun run(ctx: JexlContext)
-    }
-}
-
-class ArtusLexerException(s: String) : Exception(s)

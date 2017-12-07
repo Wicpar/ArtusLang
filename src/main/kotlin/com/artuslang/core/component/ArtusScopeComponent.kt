@@ -21,7 +21,7 @@ import com.artuslang.core.ArtusScope
 /**
  * Created on 10/10/2017 by Frederic
  */
-class ArtusScopeComponent (
+open class ArtusScopeComponent (
         val isAvailableFor: (String) -> Boolean,
         val ordinal: Int,
         val resolve: (String) -> ArtusScope

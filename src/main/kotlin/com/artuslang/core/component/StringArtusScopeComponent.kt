@@ -14,22 +14,11 @@
  * limitations under the License.
  */
 
-package com.artuslang.lang.matching
+package com.artuslang.core.component
+
+import com.artuslang.core.ArtusScope
 
 /**
- * Created on 06/12/2017 by Frederic
+ * Created on 07/12/2017 by Frederic
  */
-class TokenType(val name: String) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is TokenType) return false
-
-        if (name != other.name) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        return name.hashCode()
-    }
-}
+class StringArtusScopeComponent(val value: String, parent: ArtusScope? = null, val scope: ArtusScope = ArtusScope(parent)): ArtusScopeComponent({it == value}, 0, {scope})

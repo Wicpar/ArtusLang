@@ -22,8 +22,4 @@ class ArtusScopeResolver(val path: ArtusPath, val rootScope: ArtusScope) {
     fun resolve(relative: ArtusScope): ArtusScope {
         return path.resolve(relative, rootScope)
     }
-
-    fun multiResolve(relative: ArtusScope): List<ArtusScope> {
-        return path.multiResolve(relative, rootScope)
-    }
 }

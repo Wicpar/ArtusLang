@@ -19,7 +19,7 @@ package com.artuslang.core
 import java.math.BigInteger
 
 /**
- * will eventually be replaced by a custom bitarray implemented with lwjgl simd extensions
+ * will eventually be replaced by a custom bitarray
  */
 class ArtusBitArray() {
     private var value: BigInteger = BigInteger.ZERO

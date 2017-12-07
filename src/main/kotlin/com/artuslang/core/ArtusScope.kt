@@ -17,27 +17,19 @@
 package com.artuslang.core
 
 import com.artuslang.core.component.ArtusId
-import com.artuslang.core.component.ArtusScopeComponent
 import com.artuslang.core.component.ArtusScopeResolver
-import java.util.SortedSet
-import kotlin.collections.ArrayList
 
 open class ArtusScope(open val parent: ArtusScope? = null) {
 
 
-    val components: SortedSet<ArtusScopeComponent> = sortedSetOf(ArtusScopeComponent({parent != null && it == "parent"}, 0, { parent!! }))
+    val components: HashMap<String, ArtusScope> = hashMapOf()
 
     fun getOrDefault(str: String): ArtusScope {
-        return components.fold(null as ArtusScope?, {acc, it -> acc ?: if (it.isAvailableFor(str)) it.resolve(str) else null }) ?: {
-            val scope = ArtusScope()
-            val ret = ArtusScopeComponent({it == str}, 0, {scope})
-            components.add(ret)
-            scope
-        }()
+        return components.getOrPut(str, {ArtusScope(this)})
     }
 
     fun get(id: ArtusId) {
-        components.fold(null as ArtusScope?, {acc, it -> acc ?: if (it.isAvailableFor(id.base)) it.resolve(id.base) else null }) ?: id.onError("component of path ${id.base} not found")
+        components[id.base] ?: id.onError("component of path ${id.base} not found")
     }
 
     val structure = ArrayList<ArtusScopeResolver>()
@@ -45,8 +37,7 @@ open class ArtusScope(open val parent: ArtusScope? = null) {
 
     open fun compile(lastState: ArtusBitArray): ArtusBitArray {
         val errors = ArrayList<String>()
-        val ret: ArtusBitArray = structure.fold(ArtusBitArray(), {
-            acc, it ->
+        val ret: ArtusBitArray = structure.fold(ArtusBitArray(), { acc, it ->
             try {
                 it.resolve(this).compile(acc)
             } catch (e: ArtusPathException) {
