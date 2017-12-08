@@ -57,11 +57,26 @@ object GlobalRepo {
         return ret
     }
 
+    fun extendMatcherStack(str: String, list: Array<Matcher>, stack: MatcherStack): MatcherStack {
+        val name = "${stack.name}.$str"
+        val ret = MatcherStack(name, list.asList() + stack.lst.map { it.matcher })
+        matcherStacks.put(name, ret)
+        return ret
+    }
+
     fun getMatcherStack(str: String): MatcherStack? {
         return matcherStacks[str]
     }
 
     private val contextTypes: HashMap<String, ArtusContextType> = HashMap(LexerDefaults.contextMap)
+
+    fun extendContextType(str: String, ctx: ArtusContextType, list: Array<Matcher>, actions: Map<TokenType, String>): ArtusContextType {
+        val stack = extendMatcherStack(str, list, ctx.matcherStack)
+        val name = "${ctx.name}.$str"
+        val ret = ArtusContextType(name, stack, actions + ctx.actions)
+        contextTypes.put(name, ret)
+        return ret
+    }
 
     fun registerContextType(str: String, stack: MatcherStack, actions: Map<TokenType, String>): ArtusContextType {
         val ret = ArtusContextType(str, stack, actions)

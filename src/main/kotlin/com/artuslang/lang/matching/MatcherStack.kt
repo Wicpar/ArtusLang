@@ -26,7 +26,8 @@ class MatcherStack(val name: String, list: Collection<OrderedMatcher> = listOf()
 
     constructor(name: String, list: List<Matcher>): this(name, list.mapIndexed { index, matcher -> OrderedMatcher(index, matcher) } as Collection<OrderedMatcher>)
 
-    private val lst = PriorityQueue<OrderedMatcher>(list)
+    val lst = PriorityQueue<OrderedMatcher>(list)
+
 
     fun addMatcher(matcher: OrderedMatcher) {
         lst.add(matcher)

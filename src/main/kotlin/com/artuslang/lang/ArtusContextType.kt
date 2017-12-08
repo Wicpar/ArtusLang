@@ -21,14 +21,22 @@ import com.artuslang.lang.matching.MatcherStack
 import com.artuslang.lang.matching.TokenType
 import org.apache.commons.jexl3.JexlContext
 
-class ArtusContextType(val name: String, private val matcherStack: MatcherStack, actions: Map<TokenType, String>) {
+class ArtusContextType(val name: String, val matcherStack: MatcherStack, actions: Map<TokenType, Any?>) {
 
-    private val actions: Map<TokenType, ContextAction> = actions.map { Pair(it.key, object: ContextAction {
-        val script = JEXLConfiguration.jexl.createScript(it.value)
-        override fun run(ctx: JexlContext) {
-            script.execute(ctx)
-        }
-    }) }.associate { it }
+    val actions: Map<TokenType, ContextAction> = actions.mapNotNull {
+        val v = it.value ?: return@mapNotNull null
+        Pair(it.key, when (v) {
+            is String -> object: ContextAction {
+                val script = JEXLConfiguration.jexl.createScript(v)
+                override fun run(ctx: JexlContext) {
+                    script.execute(ctx)
+                }
+            }
+            is ContextAction -> v
+            else -> throw Exception("${v.javaClass.name} object not supported as action")
+        })
+    }.associate { it }
+
 
     fun findNext(lexer: ArtusLexer): LexerToken {
         val token = matcherStack.findNext(lexer) ?: throw ArtusLexerException("${lexer.origin}: no token matched at index ${lexer.index}")
