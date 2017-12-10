@@ -19,7 +19,6 @@ package com.artuslang.lang
 import com.artuslang.core.ArtusScope
 import com.artuslang.lang.matching.LexerToken
 import com.artuslang.lang.matching.Matcher
-import com.artuslang.lang.matching.MatcherStack
 import com.artuslang.lang.matching.TokenType
 import org.apache.commons.jexl3.JexlBuilder
 import org.apache.commons.jexl3.introspection.JexlSandbox
@@ -38,7 +37,6 @@ object JEXLConfiguration {
         sandbox.white(ArtusContext::class.java.name)
         sandbox.white(ArtusContextType::class.java.name)
         sandbox.white(TokenType::class.java.name)
-        sandbox.white(MatcherStack::class.java.name)
         sandbox.white(Map::class.java.name)
         sandbox.white(List::class.java.name)
         sandbox.white(HashMap::class.java.name)

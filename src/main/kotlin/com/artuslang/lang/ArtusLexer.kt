@@ -31,12 +31,12 @@ class ArtusLexer(val globalScope: ArtusScope, val origin: String, charSequence: 
 
     @JvmOverloads
     fun includeFromPath(string: String, contextType: ArtusContextType = LexerDefaults.defaultContextType) {
-        ArtusLexer(globalScope, string, File(string).readText(), contextType).findAll()
+        ArtusLexer(globalScope, File(string).canonicalPath, File(string).readText(), contextType).findAll()
     }
 
     @JvmOverloads
     fun includeFromUrl(string: String, contextType: ArtusContextType = LexerDefaults.defaultContextType) {
-        ArtusLexer(globalScope, string, URL(string).readText(), contextType).findAll()
+        ArtusLexer(globalScope, URL(string).toString(), URL(string).readText(), contextType).findAll()
     }
 
     private val contextStack = Stack<ArtusContext>()

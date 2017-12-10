@@ -17,7 +17,6 @@
 package com.artuslang.lang
 
 import com.artuslang.lang.matching.Matcher
-import com.artuslang.lang.matching.MatcherStack
 import com.artuslang.lang.matching.TokenType
 import org.intellij.lang.annotations.Language
 
@@ -49,36 +48,14 @@ object GlobalRepo {
         return matchers[str]
     }
 
-    private val matcherStacks: HashMap<String, MatcherStack> = HashMap(LexerDefaults.matcherStackMap)
-
-    fun registerMatcherStack(str: String, list: Array<Matcher>): MatcherStack {
-        val ret = MatcherStack(str, list.asList())
-        matcherStacks.put(str, ret)
-        return ret
-    }
-
-    fun extendMatcherStack(str: String, list: Array<Matcher>, stack: MatcherStack): MatcherStack {
-        val name = "${stack.name}.$str"
-        val ret = MatcherStack(name, list.asList() + stack.lst.map { it.matcher })
-        matcherStacks.put(name, ret)
-        return ret
-    }
-
-    fun getMatcherStack(str: String): MatcherStack? {
-        return matcherStacks[str]
-    }
-
     private val contextTypes: HashMap<String, ArtusContextType> = HashMap(LexerDefaults.contextMap)
 
-    fun extendContextType(str: String, ctx: ArtusContextType, list: Array<Matcher>, actions: Map<TokenType, String>): ArtusContextType {
-        val stack = extendMatcherStack(str, list, ctx.matcherStack)
-        val name = "${ctx.name}.$str"
-        val ret = ArtusContextType(name, stack, actions + ctx.actions)
-        contextTypes.put(name, ret)
-        return ret
+    @JvmOverloads
+    fun extendContextType(str: String, ctx: ArtusContextType, list: Array<Matcher>, actions: Map<TokenType, Any?> = mapOf()): ArtusContextType {
+        return registerContextType("${ctx.name}.$str", list + ctx.matcherStack, actions + ctx.actions)
     }
 
-    fun registerContextType(str: String, stack: MatcherStack, actions: Map<TokenType, String>): ArtusContextType {
+    fun registerContextType(str: String, stack: Array<Matcher>, actions: Map<TokenType, Any?>): ArtusContextType {
         val ret = ArtusContextType(str, stack, actions)
         contextTypes.put(str, ret)
         return ret
@@ -86,6 +63,10 @@ object GlobalRepo {
 
     fun getContextType(str: String): ArtusContextType? {
         return contextTypes[str]
+    }
+
+    fun getContextType(ctx: ArtusContextType, str: String): ArtusContextType? {
+        return contextTypes[ctx.name + "." + str]
     }
 
     private val utils = HashMap<Any, Any?>()

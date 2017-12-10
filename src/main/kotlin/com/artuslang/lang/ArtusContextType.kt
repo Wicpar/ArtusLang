@@ -17,11 +17,12 @@
 package com.artuslang.lang
 
 import com.artuslang.lang.matching.LexerToken
-import com.artuslang.lang.matching.MatcherStack
+import com.artuslang.lang.matching.Matcher
 import com.artuslang.lang.matching.TokenType
 import org.apache.commons.jexl3.JexlContext
+import org.apache.commons.jexl3.internal.Closure
 
-class ArtusContextType(val name: String, val matcherStack: MatcherStack, actions: Map<TokenType, Any?>) {
+class ArtusContextType(val name: String, val matcherStack: Array<Matcher>, actions: Map<TokenType, Any?>) {
 
     val actions: Map<TokenType, ContextAction> = actions.mapNotNull {
         val v = it.value ?: return@mapNotNull null
@@ -32,6 +33,11 @@ class ArtusContextType(val name: String, val matcherStack: MatcherStack, actions
                     script.execute(ctx)
                 }
             }
+            is Closure -> object: ContextAction {
+                override fun run(ctx: JexlContext) {
+                    v.execute(ctx)
+                }
+            }
             is ContextAction -> v
             else -> throw Exception("${v.javaClass.name} object not supported as action")
         })
@@ -39,11 +45,15 @@ class ArtusContextType(val name: String, val matcherStack: MatcherStack, actions
 
 
     fun findNext(lexer: ArtusLexer): LexerToken {
-        val token = matcherStack.findNext(lexer) ?: throw ArtusLexerException("${lexer.origin}: no token matched at index ${lexer.index}")
+        val token = matcherStack.fold(null as LexerToken?, { acc, it -> acc ?: it.find(lexer) }) ?: throw ArtusLexerException("${lexer.origin}: no token matched at index ${lexer.index}")
         val ctx = lexer.context
         ctx.token = token
         actions[token.type]?.run(ctx.jexl)
         return token
+    }
+
+    fun matcherStackString(): String {
+        return "(${matcherStack.joinToString(", ") {"<${it.type.name}>"}})"
     }
 
     interface ContextAction {

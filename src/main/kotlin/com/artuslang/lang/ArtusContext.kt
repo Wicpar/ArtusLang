@@ -40,6 +40,6 @@ class ArtusContext(val type: ArtusContextType, val lexer: ArtusLexer, val scope:
     }
 
     fun log(level: String, obj: Any?) {
-        println("${lexer.getFilePosRange(token.textRange)}: ${Level.parse(level.toUpperCase()).name}: ${obj?.toString()}")
+        println("${lexer.origin}:${lexer.getFilePosRange(token.textRange)}: ${Level.parse(level.toUpperCase()).name}: ${obj?.toString()}")
     }
 }
