@@ -33,16 +33,31 @@ class ArtusBitArray() {
         this.size = size
     }
 
+    constructor(bits: String, base: Int): this() {
+        append(bits, base)
+    }
+
+    constructor(bits: String): this() {
+        append(bits)
+    }
+
     fun append(bits: String, base: Int): ArtusBitArray {
         val increase = base * bits.length
-        value += BigInteger(bits, 1 shl base).shiftLeft(size)
+        value = value.shiftLeft(increase) + BigInteger(bits, 1 shl base)
         size += increase
+        return this
+    }
+
+    fun append(bits: String): ArtusBitArray {
+        val it = BigInteger(bits, 10)
+        value = value.shiftLeft(it.bitLength()) +  it
+        size += it.bitLength()
         return this
     }
 
     fun append(other: ArtusBitArray): ArtusBitArray {
         val increase = other.size
-        value += other.value.shiftLeft(size)
+        value = value.shiftLeft(increase) + other.value
         size += increase
         return this
     }
@@ -53,11 +68,17 @@ class ArtusBitArray() {
 
     fun toString(base: Int): String {
         val ret = value.toString(1 shl base)
-        return (String(CharArray(size / base - ret.length) {'0'}) + ret).reversed()
+        return (String(CharArray(size / base - ret.length) {'0'}) + ret)
     }
 
     override fun toString(): String {
         return "ArtusBitArray(value=${value.toString(2)}, size=$size)"
+    }
+
+    fun toByteArray(): ByteArray {
+        val ret = value.toByteArray()
+        val remaining = (size / 8) - ret.size + if (size % 8 != 0) 1 else 0
+        return (ByteArray(remaining) + ret)
     }
 
 }

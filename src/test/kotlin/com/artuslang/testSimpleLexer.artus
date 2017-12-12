@@ -1,40 +1,15 @@
 """
 lexer.includeFromPath("..\artus_repository\artus_lang\base.artus");
 lexer.includeFromPath("..\artus_repository\artus_lang\artus_module_util.artus");
+lexer.includeFromPath("..\artus_repository\artus_lang\namespace.artus");
+lexer.includeFromPath("..\artus_repository\artus_lang\structure_block.artus");
+lexer.includeFromPath("..\artus_repository\artus_lang\data_literals.artus");
+lexer.includeFromPath("..\artus_repository\artus_lang\constant.artus");
+lexer.includeFromPath("..\artus_repository\artus_lang\genfile.artus");
 
-var literalMatcher = repo.getUtil("literalMatcher");
 var endScript = repo.getUtil("endScript");
 
-var ctx = repo.getContextType("artus.recoverable.spaceable.commentable") ?: log('severe', 'artus.recoverable.spaceable.commentable not found');
-
-var name = repo.registerMatcher("name", "[\p{Pc}\p{L}\p{M}\p{No}][\p{Pc}\p{L}\p{M}\p{N}]*");
-var dot = literalMatcher(".");
-var namespace = repo.registerMatcher("namespace", "namespace");
-var bo = literalMatcher("{");
-var bc = literalMatcher("}");
-
-var mainCtx = repo.extendContextType("main", ctx, [namespace], {
-    namespace.type:  function () {
-        lexer.pushContext(repo.getContextType(ctx, 'namespaceName'));
-    }
-});
-var namespaceNameCtx = repo.extendContextType("namespaceName", ctx, [name], {
-    name.type: function () {
-        lexer.changeContext(repo.getContextType(ctx, 'namespaceNext'), scope.getOrDefault(token.text));
-    }
-});
-var namespaceNextCtx = repo.extendContextType("namespaceNext", ctx, [bo, dot], {
-    dot.type: function () {
-        lexer.changeContext(namespaceNameCtx);
-    },
-    bo.type: function () {
-        lexer.changeContext(repo.getContextType(mainCtx, 'block'));
-    }
-});
-var blockCtx = repo.extendContextType("block", mainCtx, [bc], {
-    bc.type: "lexer.popContext()"
-});
-endScript(mainCtx);
+endScript(repo.getContextType('artus.main'));
 """
 
 namespace aa.bb.cc.dd {
@@ -42,8 +17,16 @@ namespace aa.bb.cc.dd {
         namespace kk {
             namespace gg {
                 namespace hh {
+                    val constant = 0x00FF00 0b0101010101010 0o01234567 10 {
+                        0x00FF00
+                        0x00FF00
+                        0b0101010101010
+                    }
+                    val const2 = 0x00FF00
+                    val const3 = 0x00FF00
+
                     namespace ii {
-                        //this is a comment {{{{{{ and brackets that shouldn't be taken in account
+                        //this is a comment {{{ and brackets that shouldn't be taken in account
                         /*
                             a block comment
                         */
@@ -59,4 +42,11 @@ namespace aa.bb.cc.dd {
         namespace ff {}
     }
     namespace ff {}
+}
+
+genfile "test.out" {
+    0b0000
+    0b01010101
+    0b11111111
+    0b0000
 }

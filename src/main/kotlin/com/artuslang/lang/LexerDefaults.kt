@@ -28,9 +28,9 @@ object LexerDefaults {
     val headerLimitMatcher = Matcher(scriptLimit, "\"\"\"")
     val headerContentMatcher = Matcher(scriptContent, "(.*?)\"\"\"", 2)
     val defaultMatcherMap = listOf(errorMatcher, headerLimitMatcher, headerContentMatcher).associate { Pair(it.type.name, it) }
-    val defaultMatcherStack = arrayOf(headerLimitMatcher, errorMatcher)
-    val scriptMatcherStack = arrayOf(headerLimitMatcher, headerContentMatcher, errorMatcher)
-    val defaultContextType = ArtusContextType("default", defaultMatcherStack, mapOf(Pair(scriptLimit, "lexer.pushContext(repo.getContextType('script'))")))
-    val scriptContextType = ArtusContextType("script", scriptMatcherStack, mapOf(Pair(scriptLimit, "lexer.popContext()"), Pair(scriptContent, "eval(token.text)")))
+    val defaultMatcherStack = arrayListOf(headerLimitMatcher, errorMatcher)
+    val scriptMatcherStack = arrayListOf(headerLimitMatcher, headerContentMatcher, errorMatcher)
+    val defaultContextType = ArtusContextType("default", null, defaultMatcherStack, mapOf(Pair(scriptLimit, "lexer.pushContext(repo.getContextType('script'))")))
+    val scriptContextType = ArtusContextType("script", null, scriptMatcherStack, mapOf(Pair(scriptLimit, "lexer.popContext()"), Pair(scriptContent, "eval(token.text)")))
     val contextMap = mapOf(Pair("default", defaultContextType), Pair("script", scriptContextType))
 }

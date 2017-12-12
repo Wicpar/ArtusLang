@@ -21,22 +21,16 @@ import com.artuslang.lang.matching.LexerToken
 import com.artuslang.lang.util.FilePos
 import com.artuslang.lang.util.FilePosRange
 import java.io.File
-import java.net.URL
 import java.util.*
 
 /**
  * Created on 06/12/2017 by Frederic
  */
-class ArtusLexer(val globalScope: ArtusScope, val origin: String, charSequence: CharSequence, contextType: ArtusContextType = LexerDefaults.defaultContextType) {
+class ArtusLexer(val parser: ArtusParser, val globalScope: ArtusScope, val origin: String, charSequence: CharSequence, contextType: ArtusContextType = LexerDefaults.defaultContextType) {
 
     @JvmOverloads
     fun includeFromPath(string: String, contextType: ArtusContextType = LexerDefaults.defaultContextType) {
-        ArtusLexer(globalScope, File(string).canonicalPath, File(string).readText(), contextType).findAll()
-    }
-
-    @JvmOverloads
-    fun includeFromUrl(string: String, contextType: ArtusContextType = LexerDefaults.defaultContextType) {
-        ArtusLexer(globalScope, URL(string).toString(), URL(string).readText(), contextType).findAll()
+        parser.parseFile(File(string), contextType)
     }
 
     private val contextStack = Stack<ArtusContext>()

@@ -18,24 +18,32 @@ package com.artuslang.lang
 
 import com.artuslang.lang.matching.Matcher
 import com.artuslang.lang.matching.TokenType
+import org.apache.commons.jexl3.JexlContext
+import org.apache.commons.jexl3.internal.Closure
 import org.intellij.lang.annotations.Language
 
-object GlobalRepo {
-    private val modules = hashSetOf<Any>()
+class GlobalRepo(val origin: ArtusContext) {
+
+    companion object {
+        private val modules = hashSetOf<Any>()
+        private val tokens: HashMap<String, TokenType> = HashMap(LexerDefaults.defaultTokenMap)
+        private val matchers: HashMap<String, Matcher> = HashMap(LexerDefaults.defaultMatcherMap)
+        private val contextTypes: HashMap<String, ArtusContextType> = HashMap(LexerDefaults.contextMap)
+        private val listeners = HashMap<String, ArrayList<(JexlContext, ArtusContextType) -> Unit>>()
+        private val utils = HashMap<Any, Any?>()
+    }
+
     fun hasModule(elem: Any): Boolean {
         return modules.contains(elem)
     }
+
     fun registerModule(elem: Any) {
         modules.add(elem)
     }
 
-    private val tokens: HashMap<String, TokenType> = HashMap(LexerDefaults.defaultTokenMap)
-
     fun tokenTypeOf(str: String): TokenType {
-        return tokens.getOrPut(str, {TokenType(str)})
+        return tokens.getOrPut(str, { TokenType(str) })
     }
-
-    private val matchers: HashMap<String, Matcher> = HashMap(LexerDefaults.defaultMatcherMap)
 
     @JvmOverloads
     fun registerMatcher(str: String, @Language("RegExp") pattern: String, group: Int = 1): Matcher {
@@ -48,16 +56,20 @@ object GlobalRepo {
         return matchers[str]
     }
 
-    private val contextTypes: HashMap<String, ArtusContextType> = HashMap(LexerDefaults.contextMap)
-
-    @JvmOverloads
-    fun extendContextType(str: String, ctx: ArtusContextType, list: Array<Matcher>, actions: Map<TokenType, Any?> = mapOf()): ArtusContextType {
-        return registerContextType("${ctx.name}.$str", list + ctx.matcherStack, actions + ctx.actions)
+    fun onContextRegister(name: String, closure: Closure) {
+        listeners.getOrPut(name, { arrayListOf() }).add({ jexl, ctx -> closure.execute(jexl, ctx) })
     }
 
-    fun registerContextType(str: String, stack: Array<Matcher>, actions: Map<TokenType, Any?>): ArtusContextType {
-        val ret = ArtusContextType(str, stack, actions)
+    @JvmOverloads
+    fun preRegisterContextType(str: String, parent: ArtusContextType? = null, entry: Matcher? = null): ArtusContextType {
+        return registerContextType(str, entry = entry, parent = parent)
+    }
+
+    @JvmOverloads
+    fun registerContextType(str: String, entry: Matcher? = null, stack: Array<Matcher> = arrayOf(), actions: Map<TokenType, Any?>? = null, parent: ArtusContextType? = null): ArtusContextType {
+        val ret = ArtusContextType(str, entry, ArrayList(stack.asList()), actions ?: mapOf(), parent)
         contextTypes.put(str, ret)
+        listeners[str]?.forEach { it.invoke(origin.jexl, ret) }
         return ret
     }
 
@@ -65,14 +77,10 @@ object GlobalRepo {
         return contextTypes[str]
     }
 
-    fun getContextType(ctx: ArtusContextType, str: String): ArtusContextType? {
-        return contextTypes[ctx.name + "." + str]
-    }
-
-    private val utils = HashMap<Any, Any?>()
     fun getUtil(obj: Any): Any? {
         return utils[obj]
     }
+
     fun setUtil(obj: Any, y: Any?): Any? {
         return utils.put(obj, y)
     }

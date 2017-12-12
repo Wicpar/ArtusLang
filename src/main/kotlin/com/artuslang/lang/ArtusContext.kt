@@ -16,7 +16,9 @@
 
 package com.artuslang.lang
 
+import com.artuslang.core.ArtusBitArray
 import com.artuslang.core.ArtusScope
+import com.artuslang.core.scopes.EndScope
 import com.artuslang.lang.matching.LexerToken
 import org.apache.commons.jexl3.JexlContext
 import org.apache.commons.jexl3.ObjectContext
@@ -27,7 +29,7 @@ class ArtusContext(val type: ArtusContextType, val lexer: ArtusLexer, val scope:
      * only for actions
      */
     lateinit var token: LexerToken
-    val repo = GlobalRepo
+    val repo = GlobalRepo(this)
 
     val jexl: JexlContext = ObjectContext(JEXLConfiguration.jexl, this)
 
@@ -41,5 +43,21 @@ class ArtusContext(val type: ArtusContextType, val lexer: ArtusLexer, val scope:
 
     fun log(level: String, obj: Any?) {
         println("${lexer.origin}:${lexer.getFilePosRange(token.textRange)}: ${Level.parse(level.toUpperCase()).name}: ${obj?.toString()}")
+    }
+
+    fun endScopeOf(arr: ArtusBitArray): EndScope {
+        return EndScope(arr, scope)
+    }
+
+    fun bitArrayOf(str: String, base: Int): ArtusBitArray {
+        return ArtusBitArray(str, base)
+    }
+
+    fun bitArrayOf(str: String): ArtusBitArray {
+        return ArtusBitArray(str)
+    }
+
+    val doNothing = object: ArtusContextType.ContextAction {
+        override fun run(ctx: ArtusContext) {}
     }
 }

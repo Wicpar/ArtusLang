@@ -16,12 +16,15 @@
 
 package com.artuslang.lang
 
+import com.artuslang.core.ArtusBitArray
 import com.artuslang.core.ArtusScope
+import com.artuslang.core.component.ArtusScopeResolver
 import com.artuslang.lang.matching.LexerToken
 import com.artuslang.lang.matching.Matcher
 import com.artuslang.lang.matching.TokenType
 import org.apache.commons.jexl3.JexlBuilder
 import org.apache.commons.jexl3.introspection.JexlSandbox
+import org.reflections.Reflections
 import java.util.regex.Pattern
 
 /**
@@ -30,6 +33,13 @@ import java.util.regex.Pattern
 object JEXLConfiguration {
     val jexl = JexlBuilder().sandbox({
         val sandbox = JexlSandbox(false)
+        val reflect = Reflections("com.artuslang.core")
+        (reflect.getSubTypesOf(ArtusScopeResolver::class.java) +
+                reflect.getSubTypesOf(ArtusScope::class.java)
+                ).forEach {
+            sandbox.white(it.name)
+            println(it.name)
+        }
         sandbox.white(String::class.java.name)
         sandbox.white(ArtusLexer::class.java.name)
         sandbox.white(GlobalRepo::class.java.name)
@@ -42,8 +52,13 @@ object JEXLConfiguration {
         sandbox.white(HashMap::class.java.name)
         sandbox.white(ArrayList::class.java.name)
         sandbox.white(ArtusScope::class.java.name)
+        sandbox.white(ArtusScopeResolver::class.java.name)
         sandbox.white(LexerToken::class.java.name)
         sandbox.white(Pattern::class.java.name)
+        sandbox.white(ArtusBitArray::class.java.name)
+        sandbox.white(ArtusParser::class.java.name)
         sandbox
+
     }()).create()
+
 }

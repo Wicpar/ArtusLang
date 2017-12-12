@@ -34,7 +34,6 @@ open class ArtusScope(open val parent: ArtusScope? = null) {
 
     val structure = ArrayList<ArtusScopeResolver>()
 
-
     open fun compile(lastState: ArtusBitArray): ArtusBitArray {
         val errors = ArrayList<String>()
         val ret: ArtusBitArray = structure.fold(ArtusBitArray(), { acc, it ->

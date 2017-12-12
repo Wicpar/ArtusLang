@@ -17,7 +17,6 @@
 package com.artuslang.lang
 
 import com.artuslang.core.ArtusScope
-import org.apache.commons.lang.StringEscapeUtils
 import org.junit.jupiter.api.Test
 import java.io.File
 
@@ -29,17 +28,24 @@ internal class ArtusFileLexerTest {
     @Test
     fun testFile() {
         val file = File("src/test/kotlin/com/artuslang/testSimpleLexer.artus")
-        val lexer = ArtusLexer(ArtusScope(), file.name, file.readText())
+        val parser = ArtusParser()
         val time = System.nanoTime()
-        val lst = lexer.findAll()
+        parser.parseFile(file)
         println(System.nanoTime() - time)
         fun printHierarchy(scope: ArtusScope, step: Int = 0) {
             scope.components.forEach {
-                println(it.key.padStart(step * 4))
+                println(it.key.padStart(step + it.key.length, '-'))
                 printHierarchy(it.value, step + 1)
             }
+            if (scope.structure.size > 0) {
+                val str = "${scope.structure.size} structure element${if (scope.structure.size > 1) "s" else ""}"
+                println(str.padStart(step + str.length, '-'))
+            }
         }
-        printHierarchy(lexer.globalScope, 1)
-        println(lst.filter { it.type.name != "artus.base.space" }.map { it.type.name + ": " + StringEscapeUtils.escapeJava(it.text) })
+        printHierarchy(parser.globalScope, 1)
+        val time2 = System.nanoTime()
+        parser.compile()
+        println(System.nanoTime() - time2)
+        //println(lst.filter { it.type.name != "artus.base.space" }.map { it.type.name + ": " + StringEscapeUtils.escapeJava(it.text) })
     }
 }

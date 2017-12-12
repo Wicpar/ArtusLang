@@ -16,11 +16,8 @@
 
 package com.artuslang.lang
 
-import com.artuslang.core.ArtusScope
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 
@@ -42,23 +39,6 @@ internal class ArtusLexerTest {
     fun cleanUpStreams() {
         System.setOut(null)
         System.setErr(null)
-    }
-
-    @Test
-    fun testExec() {
-        val lexer = ArtusLexer(ArtusScope(), "", "\"\"\"\n\"\"\"")
-        assertEquals(
-                listOf(LexerDefaults.scriptLimit.name, LexerDefaults.scriptContent.name, LexerDefaults.scriptLimit.name),
-                lexer.findAll().map { it.type.name })
-    }
-
-    @Test
-    fun testLogger() {
-        val lexer = ArtusLexer(ArtusScope(), "", "\"\"\"log('info', 'hello world')\"\"\"")
-        assertEquals(
-                listOf(LexerDefaults.scriptLimit.name, LexerDefaults.scriptContent.name, LexerDefaults.scriptLimit.name),
-                lexer.findAll().map { it.type.name })
-        assertEquals(outContent.toString().trim(), "(0:3):(0:28): INFO: hello world")
     }
 
 

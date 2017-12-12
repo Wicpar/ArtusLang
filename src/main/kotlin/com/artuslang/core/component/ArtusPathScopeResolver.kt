@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package com.artuslang.lang.matching
+package com.artuslang.core.component
 
-/**
- * Created on 06/12/2017 by Frederic
- */
-internal class MatcherTest {
+import com.artuslang.core.ArtusScope
 
+class ArtusPathScopeResolver(val path: ArtusPath, val rootScope: ArtusScope): ArtusScopeResolver {
+    override fun resolve(relative: ArtusScope): ArtusScope {
+        return path.resolve(relative, rootScope)
+    }
 }
