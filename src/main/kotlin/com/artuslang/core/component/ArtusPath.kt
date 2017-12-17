@@ -23,9 +23,11 @@ class ArtusPath(val relative: Boolean, val succession: List<ArtusId>) {
 
     fun resolve(thisScope: ArtusScope, rootScope: ArtusScope): ArtusScope {
         val scope = if (relative) thisScope else rootScope
-        return succession.foldIndexed(scope, {
-            idx: Int, acc: ArtusScope, elem: ArtusId ->
-            acc.components[elem.base] ?: throw ArtusPathException(elem.onError("component of path ${succession.subList(0, idx + 1)} not found"))
+
+        return succession.foldIndexed(scope, { idx: Int, acc: ArtusScope, elem: ArtusId ->
+            acc.components[elem.base, { it: String ->
+                elem.onError("in path ${succession.subList(0, idx + 1)} : $it"); Unit
+            }] ?: throw ArtusPathException("in path ${succession.subList(0, idx + 1)} : element not found")
         })
     }
 }

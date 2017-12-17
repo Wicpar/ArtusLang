@@ -16,15 +16,16 @@
 
 package com.artuslang.core.scopes
 
+import com.artuslang.core.ArtusBasicScope
 import com.artuslang.core.ArtusBitArray
-import com.artuslang.core.ArtusScope
 import com.artuslang.core.component.ArtusSingleScopeResolver
+import com.artuslang.lang.ArtusContext
 
 /**
  * Created on 10/10/2017 by Frederic
  */
-class EndScope(val compileFunc: (ArtusBitArray) -> ArtusBitArray, parent: ArtusScope? = null) : ArtusScope(parent) {
-    constructor(appendValue: ArtusBitArray, parent: ArtusScope? = null) : this({ it.append(appendValue) }, parent)
+class EndScope(val compileFunc: (ArtusBitArray) -> ArtusBitArray, origin: ArtusContext) : ArtusBasicScope(origin) {
+    constructor(appendValue: ArtusBitArray, origin: ArtusContext) : this({ it.append(appendValue) }, origin)
 
     override fun compile(lastState: ArtusBitArray): ArtusBitArray {
         return compileFunc(lastState)

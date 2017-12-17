@@ -46,7 +46,12 @@ class ArtusContext(val type: ArtusContextType, val lexer: ArtusLexer, val scope:
     }
 
     fun endScopeOf(arr: ArtusBitArray): EndScope {
-        return EndScope(arr, scope)
+        return EndScope(arr, this)
+    }
+
+    @JvmOverloads
+    fun subScopeOf(elem: Any, scope: ArtusScope = this.scope): ArtusScope? {
+        return scope.components.registerScope(elem, {log("severe", it)})
     }
 
     fun bitArrayOf(str: String, base: Int): ArtusBitArray {
@@ -59,5 +64,11 @@ class ArtusContext(val type: ArtusContextType, val lexer: ArtusLexer, val scope:
 
     val doNothing = object: ArtusContextType.ContextAction {
         override fun run(ctx: ArtusContext) {}
+    }
+
+    fun getSnapshot(): ArtusContext {
+        val newCtx = ArtusContext(type, lexer, scope)
+        newCtx.token = token
+        return newCtx
     }
 }

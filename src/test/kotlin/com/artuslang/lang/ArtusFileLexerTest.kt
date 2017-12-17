@@ -33,11 +33,14 @@ internal class ArtusFileLexerTest {
         parser.parseFile(file)
         println(System.nanoTime() - time)
         fun printHierarchy(scope: ArtusScope, step: Int = 0) {
-            scope.components.forEach {
-                println(it.key.padStart(step + it.key.length, '-'))
-                printHierarchy(it.value, step + 1)
+            scope.components.getAccessors().forEach {
+                it.getRegisteredScopes().forEach {
+                    val str = it.toString()
+                    println(str.padStart(step + str.length, '-'))
+                    printHierarchy(it, step + 1)
+                }
             }
-            if (scope.structure.size > 0) {
+            if (scope.structure.isNotEmpty()) {
                 val str = "${scope.structure.size} structure element${if (scope.structure.size > 1) "s" else ""}"
                 println(str.padStart(step + str.length, '-'))
             }

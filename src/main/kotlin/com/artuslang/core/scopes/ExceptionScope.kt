@@ -16,14 +16,16 @@
 
 package com.artuslang.core.scopes
 
+import com.artuslang.core.ArtusBasicScope
 import com.artuslang.core.ArtusBitArray
-import com.artuslang.core.ArtusScope
+import com.artuslang.lang.ArtusContext
 
 /**
  * Created on 10/10/2017 by Frederic
  */
-class ExceptionScope(parent: ArtusScope? = null, val e: Exception) : ArtusScope(parent) {
+class ExceptionScope(val msg: String, origin: ArtusContext) : ArtusBasicScope(origin) {
     override fun compile(lastState: ArtusBitArray): ArtusBitArray {
-        throw e
+        printErr(msg)
+        return lastState
     }
 }
