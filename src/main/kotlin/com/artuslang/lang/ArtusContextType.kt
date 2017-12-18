@@ -69,7 +69,7 @@ class ArtusContextType @JvmOverloads constructor(val name: String, val entryMatc
 
     @JvmOverloads
     fun addContextPush(context: ArtusContextType, matcher: Matcher? = null): ContextAction? {
-        val matcher1 = matcher ?: context.entryMatcher ?: throw Exception("${context.name} cannot be added as context push, it does not have an entry matcher.")
+        val matcher1 = matcher ?: context.entryMatcher ?: throw Exception("${context.name} cannot be added as logger push, it does not have an entry matcher.")
         return addMatchAction(matcher1, object : ContextAction {
             override fun run(ctx: ArtusContext) {
                 ctx.lexer.pushContext(context)
@@ -79,7 +79,7 @@ class ArtusContextType @JvmOverloads constructor(val name: String, val entryMatc
 
     @JvmOverloads
     fun addContextChange(context: ArtusContextType, matcher: Matcher? = null): ContextAction? {
-        val matcher1 = matcher ?: context.entryMatcher ?: throw Exception("${context.name} cannot be added as context change, it does not have an entry matcher.")
+        val matcher1 = matcher ?: context.entryMatcher ?: throw Exception("${context.name} cannot be added as logger change, it does not have an entry matcher.")
         return addMatchAction(matcher1, object : ContextAction {
             override fun run(ctx: ArtusContext) {
                 ctx.lexer.changeContext(context)
@@ -92,16 +92,16 @@ class ArtusContextType @JvmOverloads constructor(val name: String, val entryMatc
     }
 
     fun findNext(lexer: ArtusLexer): LexerToken {
-        val token = findToken(lexer) ?: throw ArtusLexerException("${lexer.origin}: no token matched at index ${lexer.index}")
         val ctx = lexer.context
-        ctx.token = token
         try {
+            val token = findToken(lexer) ?: throw ArtusLexerException("${lexer.origin}: no token matched at index ${lexer.index}")
+            ctx.token = token
             getAction(token.type)?.run(ctx)
+            return token
         } catch (e: Exception) {
             ctx.log("severe", e.message)
             throw e
         }
-        return token
     }
 
     private fun findToken(lexer: ArtusLexer): LexerToken? {
@@ -124,6 +124,7 @@ class ArtusContextType @JvmOverloads constructor(val name: String, val entryMatc
                 }
             }
         }
+
         fun run(ctx: ArtusContext)
     }
 }

@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package com.artuslang.core.scopes
+package com.artuslang.lang
 
-import com.artuslang.core.ArtusBasicScope
-import com.artuslang.core.ArtusBitArray
-import com.artuslang.lang.ContextualizedLogger
+import com.artuslang.lang.matching.LexerToken
+import java.util.logging.Level
 
-/**
- * Created on 10/10/2017 by Frederic
- */
-class ExceptionScope(val msg: String, origin: ContextualizedLogger) : ArtusBasicScope(origin) {
-    override fun compile(lastState: ArtusBitArray): ArtusBitArray {
-        printErr(msg)
-        return lastState
+class ContextualizedLogger(val lexer: ArtusLexer, val token: LexerToken) {
+    fun log(level: String, obj: Any?) {
+        println("${lexer.origin}:${lexer.getFilePosRange(token.textRange)}: ${Level.parse(level.toUpperCase()).name}: ${obj?.toString()}")
     }
 }

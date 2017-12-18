@@ -18,10 +18,12 @@ package com.artuslang.lang
 
 import com.artuslang.core.ArtusScope
 import com.artuslang.lang.matching.LexerToken
+import com.artuslang.lang.matching.TokenType
 import com.artuslang.lang.util.FilePos
 import com.artuslang.lang.util.FilePosRange
 import java.io.File
 import java.util.*
+import kotlin.collections.HashSet
 
 /**
  * Created on 06/12/2017 by Frederic
@@ -35,8 +37,8 @@ class ArtusLexer(val parser: ArtusParser, val globalScope: ArtusScope, val origi
 
     private val contextStack = Stack<ArtusContext>()
     val context: ArtusContext
-        @JvmName("getContext")
         get() = contextStack.peek()
+
     fun popContext() {
         contextStack.pop()
     }
@@ -70,6 +72,8 @@ class ArtusLexer(val parser: ArtusParser, val globalScope: ArtusScope, val origi
     var index = 0
     var sequence = charSequence
 
+    private
+
     fun hasNext(): Boolean {
         return sequence.isNotEmpty()
     }
@@ -78,11 +82,54 @@ class ArtusLexer(val parser: ArtusParser, val globalScope: ArtusScope, val origi
         return context.type.findNext(this)
     }
 
-    fun findAll(): List<LexerToken> {
-        val lst = arrayListOf<LexerToken>()
+    private val lst = arrayListOf<LexerToken>()
+    private val tracker = Stack<Int>()
+    fun lex(): List<LexerToken> {
+        tracker.clear()
+        tracker.push(0)
+        lst.clear()
         while(hasNext())
             lst.add(findNext())
         return lst
+    }
+
+    /**
+     * insert tracker at current index
+     */
+    fun pushTracker() {
+        tracker.push(lst.size)
+    }
+
+    /**
+     * remove tracker
+     */
+    fun popTracker() {
+        tracker.pop()
+    }
+
+    /**
+     * get tracked list, up until current index, excluded
+     */
+    fun getTrackedList(): List<LexerToken> {
+        return lst.subList(tracker.peek(), lst.size)
+    }
+
+    /**
+     * get tracked list, up until current index, excluded
+     * filtered by type name
+     */
+    fun getTrackedListFiltered(filter: Array<String>): List<LexerToken> {
+        val hash = HashSet(filter.toList())
+        return getTrackedList().filter { hash.contains(it.type.name) }
+    }
+
+    /**
+     * get tracked list, up until current index, excluded
+     * filtered by type
+     */
+    fun getTrackedListFiltered(filter: Array<TokenType>): List<LexerToken> {
+        val hash = HashSet(filter.toList())
+        return getTrackedList().filter { hash.contains(it.type) }
     }
 }
 

@@ -6,7 +6,6 @@ lexer.includeFromPath("..\artus_repository\artus_lang\structure_block.artus");
 lexer.includeFromPath("..\artus_repository\artus_lang\data_literals.artus");
 lexer.includeFromPath("..\artus_repository\artus_lang\constant.artus");
 lexer.includeFromPath("..\artus_repository\artus_lang\genfile.artus");
-
 var endScript = repo.getUtil("endScript");
 
 endScript(repo.getContextType('artus.main'));

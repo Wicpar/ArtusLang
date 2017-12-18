@@ -20,12 +20,13 @@ import com.artuslang.core.ArtusBasicScope
 import com.artuslang.core.ArtusBitArray
 import com.artuslang.core.component.ArtusSingleScopeResolver
 import com.artuslang.lang.ArtusContext
+import com.artuslang.lang.ContextualizedLogger
 
 /**
  * Created on 10/10/2017 by Frederic
  */
-class EndScope(val compileFunc: (ArtusBitArray) -> ArtusBitArray, origin: ArtusContext) : ArtusBasicScope(origin) {
-    constructor(appendValue: ArtusBitArray, origin: ArtusContext) : this({ it.append(appendValue) }, origin)
+class EndScope(val compileFunc: (ArtusBitArray) -> ArtusBitArray, origin: ContextualizedLogger) : ArtusBasicScope(origin) {
+    constructor(appendValue: ArtusBitArray, origin: ArtusContext) : this({ it.append(appendValue) }, origin.logger)
 
     override fun compile(lastState: ArtusBitArray): ArtusBitArray {
         return compileFunc(lastState)

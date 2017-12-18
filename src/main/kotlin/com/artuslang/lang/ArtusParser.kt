@@ -32,7 +32,7 @@ class ArtusParser {
     val globalScope = object: ArtusScope {
 
         override fun printErr(err: String) {
-
+            println("global: $err")
         }
 
         override val structure = ArrayList<ArtusScopeResolver>()
@@ -54,7 +54,7 @@ class ArtusParser {
     val lexedFiles = HashMap<File, List<LexerToken>>()
 
     fun parseFile(file: File, contextType: ArtusContextType = LexerDefaults.defaultContextType) {
-        lexedFiles.put(file, ArtusLexer(this, globalScope, file.canonicalPath, file.readText(), contextType).findAll())
+        lexedFiles.put(file, ArtusLexer(this, globalScope, file.canonicalPath, file.readText(), contextType).lex())
     }
 
     private val compileChain = ArrayList<CompileEvent>()

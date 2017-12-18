@@ -18,17 +18,19 @@ package com.artuslang.lang
 
 import com.artuslang.core.ArtusBitArray
 import com.artuslang.core.ArtusScope
+import com.artuslang.core.ContextualizedObject
 import com.artuslang.core.scopes.EndScope
 import com.artuslang.lang.matching.LexerToken
 import org.apache.commons.jexl3.JexlContext
 import org.apache.commons.jexl3.ObjectContext
-import java.util.logging.Level
 
 class ArtusContext(val type: ArtusContextType, val lexer: ArtusLexer, val scope: ArtusScope) {
     /**
      * only for actions
      */
     lateinit var token: LexerToken
+    val logger: ContextualizedLogger
+        get() = ContextualizedLogger(lexer, token)
     val repo = GlobalRepo(this)
 
     val jexl: JexlContext = ObjectContext(JEXLConfiguration.jexl, this)
@@ -42,7 +44,7 @@ class ArtusContext(val type: ArtusContextType, val lexer: ArtusLexer, val scope:
     }
 
     fun log(level: String, obj: Any?) {
-        println("${lexer.origin}:${lexer.getFilePosRange(token.textRange)}: ${Level.parse(level.toUpperCase()).name}: ${obj?.toString()}")
+        logger.log(level, obj)
     }
 
     fun endScopeOf(arr: ArtusBitArray): EndScope {
@@ -52,6 +54,10 @@ class ArtusContext(val type: ArtusContextType, val lexer: ArtusLexer, val scope:
     @JvmOverloads
     fun subScopeOf(elem: Any, scope: ArtusScope = this.scope): ArtusScope? {
         return scope.components.registerScope(elem, {log("severe", it)})
+    }
+
+    fun <T: Any> contextualized(elem: T): ContextualizedObject<T> {
+        return ContextualizedObject(elem, ContextualizedLogger(lexer, token))
     }
 
     fun bitArrayOf(str: String, base: Int): ArtusBitArray {
@@ -65,10 +71,5 @@ class ArtusContext(val type: ArtusContextType, val lexer: ArtusLexer, val scope:
     val doNothing = object: ArtusContextType.ContextAction {
         override fun run(ctx: ArtusContext) {}
     }
-
-    fun getSnapshot(): ArtusContext {
-        val newCtx = ArtusContext(type, lexer, scope)
-        newCtx.token = token
-        return newCtx
-    }
 }
+

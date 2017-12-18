@@ -57,6 +57,7 @@ object JEXLConfiguration {
         sandbox.white(Pattern::class.java.name)
         sandbox.white(ArtusBitArray::class.java.name)
         sandbox.white(ArtusParser::class.java.name)
+        sandbox.white(ContextualizedLogger::class.java.name)
         sandbox
 
     }()).create()
