@@ -16,7 +16,7 @@
 
 package com.artuslang.lang
 
-import com.artuslang.core.ArtusScope
+import com.artuslang.core.scopes.ArtusScope
 import org.junit.jupiter.api.Test
 import java.io.File
 

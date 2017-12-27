@@ -6,12 +6,16 @@ lexer.includeFromPath("..\artus_repository\artus_lang\structure_block.artus");
 lexer.includeFromPath("..\artus_repository\artus_lang\data_literals.artus");
 lexer.includeFromPath("..\artus_repository\artus_lang\constant.artus");
 lexer.includeFromPath("..\artus_repository\artus_lang\genfile.artus");
+lexer.includeFromPath("..\artus_repository\artus_lang\procedure.artus");
 var endScript = repo.getUtil("endScript");
 
 endScript(repo.getContextType('artus.main'));
 """
 
 namespace aa.bb.cc.dd {
+    proc p.d.f(a, b, c) {
+        0x00FF00
+    }
     namespace ee {
         namespace kk {
             namespace gg {
@@ -23,6 +27,7 @@ namespace aa.bb.cc.dd {
                     }
                     val const2 = 0x00FF00
                     val const3 = 0x00FF00
+
 
                     namespace ii {
                         //this is a comment {{{ and brackets that shouldn't be taken in account

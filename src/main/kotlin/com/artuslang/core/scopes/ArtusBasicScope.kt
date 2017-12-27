@@ -17,14 +17,26 @@
 package com.artuslang.core.scopes
 
 import com.artuslang.core.ArtusBitArray
+import com.artuslang.core.component.ArtusScopeResolver
+import com.artuslang.core.scopes.handlers.ArtusBasicComponentHandler
+import com.artuslang.core.scopes.handlers.ArtusComponentHandler
 import com.artuslang.lang.ContextualizedLogger
 
-/**
- * Created on 10/10/2017 by Frederic
- */
-class ExceptionScope(val msg: String, origin: ContextualizedLogger) : ArtusBasicScope(origin) {
+open class ArtusBasicScope(override val logger: ContextualizedLogger) : ArtusScope {
+
+
+    override val structure = ArrayList<ArtusScopeResolver>()
+    override val components: ArtusComponentHandler = ArtusBasicComponentHandler()
+
     override fun compile(lastState: ArtusBitArray): ArtusBitArray {
-        logger.log("severe", msg)
-        return lastState
+        val ret: ArtusBitArray = structure.fold(ArtusBitArray(), { acc, it ->
+            try {
+                it.resolve(this).compile(acc)
+            } catch (e: Exception) {
+                logger.log("severe", e.toString())
+                ArtusBitArray()
+            }
+        })
+        return lastState.append(ret)
     }
 }

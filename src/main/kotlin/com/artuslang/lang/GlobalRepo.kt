@@ -16,8 +16,10 @@
 
 package com.artuslang.lang
 
-import com.artuslang.core.ArtusComponentHandler
-import com.artuslang.core.ArtusLinearFactory
+import com.artuslang.core.scopes.accessors.factory.ArtusLinearFactory
+import com.artuslang.core.scopes.accessors.factory.ArtusMappedFactory
+import com.artuslang.core.scopes.accessors.factory.ArtusProceduralFactory
+import com.artuslang.core.scopes.handlers.ArtusComponentHandler
 import com.artuslang.lang.matching.Matcher
 import com.artuslang.lang.matching.TokenType
 import org.apache.commons.jexl3.JexlContext
@@ -89,5 +91,13 @@ class GlobalRepo(val origin: ArtusContext) {
 
     fun registerLinearFactory(index: Int, classes: Array<Class<*>>) {
         ArtusComponentHandler.registerFactory(ArtusLinearFactory(index, classes.toList()))
+    }
+
+    fun registerProceduralFactory(index: Int) {
+        ArtusComponentHandler.registerFactory(ArtusProceduralFactory(index))
+    }
+
+    fun registerMappedFactory(index: Int) {
+        ArtusComponentHandler.registerFactory(ArtusMappedFactory(index))
     }
 }

@@ -16,7 +16,7 @@
 
 package com.artuslang.core.component
 
-import com.artuslang.core.ArtusScope
+import com.artuslang.core.scopes.ArtusScope
 
 class ArtusSingleScopeResolver(val scope: ArtusScope): ArtusScopeResolver {
     override fun resolve(relative: ArtusScope): ArtusScope {

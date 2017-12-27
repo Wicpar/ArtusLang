@@ -17,20 +17,20 @@
 package com.artuslang.lang
 
 import com.artuslang.core.ArtusBitArray
-import com.artuslang.core.ArtusScope
-import com.artuslang.core.ContextualizedObject
+import com.artuslang.core.component.ArtusId
+import com.artuslang.core.scopes.ArtusScope
 import com.artuslang.core.scopes.EndScope
 import com.artuslang.lang.matching.LexerToken
 import org.apache.commons.jexl3.JexlContext
 import org.apache.commons.jexl3.ObjectContext
 
-class ArtusContext(val type: ArtusContextType, val lexer: ArtusLexer, val scope: ArtusScope) {
+class ArtusContext(val type: ArtusContextType, val lexer: ArtusLexer, val scope: ArtusScope, previousContext: ArtusContext?) {
     /**
      * only for actions
      */
     lateinit var token: LexerToken
     val logger: ContextualizedLogger
-        get() = ContextualizedLogger(lexer, token)
+        get() = LexerLogger(lexer, token)
     val repo = GlobalRepo(this)
 
     val jexl: JexlContext = ObjectContext(JEXLConfiguration.jexl, this)
@@ -56,8 +56,8 @@ class ArtusContext(val type: ArtusContextType, val lexer: ArtusLexer, val scope:
         return scope.components.registerScope(elem, {log("severe", it)})
     }
 
-    fun <T: Any> contextualized(elem: T): ContextualizedObject<T> {
-        return ContextualizedObject(elem, ContextualizedLogger(lexer, token))
+    fun <T: Any> id(elem: T): ArtusId<T> {
+        return ArtusId(elem, LexerLogger(lexer, token))
     }
 
     fun bitArrayOf(str: String, base: Int): ArtusBitArray {
@@ -70,6 +70,23 @@ class ArtusContext(val type: ArtusContextType, val lexer: ArtusLexer, val scope:
 
     val doNothing = object: ArtusContextType.ContextAction {
         override fun run(ctx: ArtusContext) {}
+    }
+
+
+    private val previousProperties: Map<String, Any> = previousContext?.previousProperties?.plus(previousContext.properties) ?: mapOf()
+
+    private val properties =  HashMap<String, Any>()
+
+    fun setProperty(property: String, content: Any?) {
+        if (content != null)
+            lexer.context.properties.put(property, content)
+        else
+            lexer.context.properties.remove(property)
+    }
+
+    @JvmOverloads
+    fun getProperty(property: String, inherit: Boolean = true): Any? {
+        return lexer.context.properties[property] ?: if (inherit) lexer.context.previousProperties[property] else null
     }
 }
 

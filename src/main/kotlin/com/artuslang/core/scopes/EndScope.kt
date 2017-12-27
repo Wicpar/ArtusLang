@@ -16,7 +16,6 @@
 
 package com.artuslang.core.scopes
 
-import com.artuslang.core.ArtusBasicScope
 import com.artuslang.core.ArtusBitArray
 import com.artuslang.core.component.ArtusSingleScopeResolver
 import com.artuslang.lang.ArtusContext

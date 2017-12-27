@@ -14,28 +14,18 @@
  * limitations under the License.
  */
 
-package com.artuslang.core.component
+package com.artuslang.core.scopes.accessors
 
-import com.artuslang.lang.ContextualizedLogger
+import com.artuslang.core.scopes.ArtusScope
+import com.artuslang.core.scopes.accessors.factory.ArtusScopeAccessorFactory
 
-class ArtusId<T: Any>(val base: T, val logger: ContextualizedLogger) {
-
-    override operator fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (base == other) return true
-        if (other !is ArtusId<*>) return false
-
-        if (base != other.base) return false
-
-        return true
+interface ArtusScopeAccessor<T : ArtusScopeAccessorFactory<T>> : Comparable<ArtusScopeAccessor<T>> {
+    val factory: T
+    val index: Int
+    fun applyToOrNull(elem: Any): ArtusScope?
+    fun register(elem: Any): ArtusScope
+    fun getRegisteredScopes(): List<ArtusScope>
+    override fun compareTo(other: ArtusScopeAccessor<T>): Int {
+        return index.compareTo(other.index)
     }
-
-    override fun hashCode(): Int {
-        return base.hashCode()
-    }
-
-    override fun toString(): String {
-        return base.toString()
-    }
-
 }

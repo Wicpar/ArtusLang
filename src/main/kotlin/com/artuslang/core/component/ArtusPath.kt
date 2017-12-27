@@ -17,16 +17,16 @@
 package com.artuslang.core.component
 
 import com.artuslang.core.ArtusPathException
-import com.artuslang.core.ArtusScope
+import com.artuslang.core.scopes.ArtusScope
 
-class ArtusPath(val relative: Boolean, val succession: List<ArtusId>) {
+class ArtusPath(val relative: Boolean, val succession: List<ArtusId<*>>) {
 
     fun resolve(thisScope: ArtusScope, rootScope: ArtusScope): ArtusScope {
         val scope = if (relative) thisScope else rootScope
 
-        return succession.foldIndexed(scope, { idx: Int, acc: ArtusScope, elem: ArtusId ->
+        return succession.foldIndexed(scope, { idx: Int, acc: ArtusScope, elem: ArtusId<*> ->
             acc.components[elem.base, { it: String ->
-                elem.onError("in path ${succession.subList(0, idx + 1)} : $it"); Unit
+                elem.logger.log("severe", "element not found in path ${succession.subList(0, idx + 1)} : $it")
             }] ?: throw ArtusPathException("in path ${succession.subList(0, idx + 1)} : element not found")
         })
     }

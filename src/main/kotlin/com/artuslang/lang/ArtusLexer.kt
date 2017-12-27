@@ -16,7 +16,7 @@
 
 package com.artuslang.lang
 
-import com.artuslang.core.ArtusScope
+import com.artuslang.core.scopes.ArtusScope
 import com.artuslang.lang.matching.LexerToken
 import com.artuslang.lang.matching.TokenType
 import com.artuslang.lang.util.FilePos
@@ -45,13 +45,13 @@ class ArtusLexer(val parser: ArtusParser, val globalScope: ArtusScope, val origi
 
     @JvmOverloads
     fun pushContext(ctxType: ArtusContextType, artusScope: ArtusScope = context.scope) {
-        contextStack.push(ArtusContext(ctxType, this, artusScope))
+        contextStack.push(ArtusContext(ctxType, this, artusScope, contextStack.lastOrNull()))
     }
 
     @JvmOverloads
     fun changeContext(ctxType: ArtusContextType, artusScope: ArtusScope = context.scope) {
         contextStack.pop()
-        contextStack.push(ArtusContext(ctxType, this, artusScope))
+        contextStack.push(ArtusContext(ctxType, this, artusScope, contextStack.lastOrNull()))
     }
 
     init {

@@ -17,8 +17,9 @@
 package com.artuslang.lang
 
 import com.artuslang.core.ArtusBitArray
-import com.artuslang.core.ArtusScope
+import com.artuslang.core.ContextualizedScopeBuilder
 import com.artuslang.core.component.ArtusScopeResolver
+import com.artuslang.core.scopes.ArtusScope
 import com.artuslang.lang.matching.LexerToken
 import com.artuslang.lang.matching.Matcher
 import com.artuslang.lang.matching.TokenType
@@ -38,7 +39,6 @@ object JEXLConfiguration {
                 reflect.getSubTypesOf(ArtusScope::class.java)
                 ).forEach {
             sandbox.white(it.name)
-            println(it.name)
         }
         sandbox.white(String::class.java.name)
         sandbox.white(ArtusLexer::class.java.name)
@@ -58,8 +58,9 @@ object JEXLConfiguration {
         sandbox.white(ArtusBitArray::class.java.name)
         sandbox.white(ArtusParser::class.java.name)
         sandbox.white(ContextualizedLogger::class.java.name)
+        sandbox.white(ContextualizedScopeBuilder::class.java.name)
+        sandbox.white(Pair::class.java.name)
         sandbox
-
     }()).create()
 
 }

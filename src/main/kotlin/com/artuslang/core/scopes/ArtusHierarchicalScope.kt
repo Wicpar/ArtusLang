@@ -16,15 +16,16 @@
 
 package com.artuslang.core.scopes
 
-import com.artuslang.core.ArtusBitArray
+import com.artuslang.core.scopes.handlers.ArtusHierachicalComponentHandler
 import com.artuslang.lang.ContextualizedLogger
 
-/**
- * Created on 10/10/2017 by Frederic
- */
-class ExceptionScope(val msg: String, origin: ContextualizedLogger) : ArtusBasicScope(origin) {
-    override fun compile(lastState: ArtusBitArray): ArtusBitArray {
-        logger.log("severe", msg)
-        return lastState
-    }
+open class ArtusHierarchicalScope(origin: ContextualizedLogger, val parents: List<ArtusScope> = listOf()) : ArtusBasicScope(origin) {
+    constructor(origin: ContextualizedLogger, vararg parents: ArtusScope): this(origin, parents.asList())
+    override val components: ArtusHierachicalComponentHandler = ArtusHierachicalComponentHandler(parents.map {
+        val base = if (it is ArtusHierarchicalScope)
+            it.components.parents
+        else
+            listOf()
+        base + it.components
+    }.fold(listOf(), { acc, list -> (acc + list).distinct() }))
 }

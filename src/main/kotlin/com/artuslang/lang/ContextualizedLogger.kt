@@ -19,8 +19,18 @@ package com.artuslang.lang
 import com.artuslang.lang.matching.LexerToken
 import java.util.logging.Level
 
-class ContextualizedLogger(val lexer: ArtusLexer, val token: LexerToken) {
-    fun log(level: String, obj: Any?) {
+interface ContextualizedLogger {
+    fun log(level: String, obj: Any?)
+}
+
+class LexerLogger(val lexer: ArtusLexer, val token: LexerToken): ContextualizedLogger {
+    override fun log(level: String, obj: Any?) {
         println("${lexer.origin}:${lexer.getFilePosRange(token.textRange)}: ${Level.parse(level.toUpperCase()).name}: ${obj?.toString()}")
+    }
+}
+
+class GlobalLogger: ContextualizedLogger {
+    override fun log(level: String, obj: Any?) {
+        println("global: ${Level.parse(level.toUpperCase()).name}: ${obj?.toString()}")
     }
 }

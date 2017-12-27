@@ -16,11 +16,9 @@
 
 package com.artuslang.lang
 
+import com.artuslang.core.scopes.ArtusBasicScope
 import com.artuslang.core.ArtusBitArray
-import com.artuslang.core.ArtusComponentHandler
-import com.artuslang.core.ArtusPathException
-import com.artuslang.core.ArtusScope
-import com.artuslang.core.component.ArtusScopeResolver
+import com.artuslang.core.scopes.ArtusScope
 import com.artuslang.lang.matching.LexerToken
 import java.io.File
 
@@ -29,27 +27,7 @@ import java.io.File
  */
 class ArtusParser {
 
-    val globalScope = object: ArtusScope {
-
-        override fun printErr(err: String) {
-            println("global: $err")
-        }
-
-        override val structure = ArrayList<ArtusScopeResolver>()
-        override val components = ArtusComponentHandler()
-
-        override fun compile(lastState: ArtusBitArray): ArtusBitArray {
-            val ret: ArtusBitArray = structure.fold(ArtusBitArray(), { acc, it ->
-                try {
-                    it.resolve(this).compile(acc)
-                } catch (e: ArtusPathException) {
-                    printErr(e.msg)
-                    ArtusBitArray()
-                }
-            })
-            return lastState.append(ret)
-        }
-    }
+    val globalScope = ArtusBasicScope(GlobalLogger())
 
     val lexedFiles = HashMap<File, List<LexerToken>>()
 
