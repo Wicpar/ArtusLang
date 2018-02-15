@@ -16,34 +16,59 @@
 
 package com.artuslang.lang
 
-import com.artuslang.new.ContextType
-import com.artuslang.new.TokenMatcher
-import com.artuslang.new.TokenType
+import com.artuslang.new.*
 
 /**
  * Created on 23/01/2018 by Frederic
  */
 
-val noType = TokenType("", hashMapOf())
-val sscriptTagType = TokenType("scriptTag", hashMapOf())
+class BaseLang() {
 
-val spaceMatcher = TokenMatcher(noType, "[\\p{Z}\\r]+|\\n")
-val spaceContext = spaceMatcher.withContext { _, context ->  context}
-val spaceableContext = ContextType("spaceable", arrayListOf(spaceContext))
+    val baseCtx = ScriptContext()
 
-val lineMatcher = TokenMatcher(noType, ".*(?!\n)")
+    val utils = LangUtils(baseCtx)
 
-val directiveMatcher = TokenMatcher(sscriptTagType, "#").withContext { _, context ->
-    context
+    val noType = TokenType("", hashMapOf())
+    val sscriptTagType = TokenType("scriptTag", hashMapOf())
+
+    val spaceMatcher = TokenMatcher(noType, "[\\p{Z}\\r]+|\\n")
+    val spaceContext = utils.contextMatcherNop(spaceMatcher)
+    val spaceableContext = ContextType("spaceable", arrayListOf(spaceContext))
+
+
+    val directiveMatcher = ContextMatcher(TokenMatcher(sscriptTagType, "#.*?\\n"), { token, context ->
+        println(token.text.substring(1, token.text.length - 1))
+        utils.eval(token.text.substring(1, token.text.length - 1), Pair("token", token), Pair("context", context)) as? Context
+                ?: context
+    })
+
+    val multilineMatcher = ContextMatcher(TokenMatcher(sscriptTagType, "###.*?###"), { token, context ->
+        println(token.text.substring(3, token.text.length - 3))
+        utils.eval(token.text.substring(3, token.text.length - 3), Pair("token", token), Pair("context", context)) as? Context
+                ?: context
+    })
+
+    val baseContextType = ContextType("script", arrayListOf(multilineMatcher, directiveMatcher), arrayListOf(spaceableContext))
 }
-val multilineMatcher = TokenMatcher(sscriptTagType, "###").withContext { _, context ->
-    context
-}
 
-val baseContextType = ContextType("script", arrayListOf(multilineMatcher, directiveMatcher), arrayListOf(spaceableContext))
 
 fun main(args: Array<String>) {
-//    val g = allMatcher.regex.find("aaabbbaaaa")
-//    println(g?.range)
-//    println(g?.value)
+    val script =
+            """
+                # log:println("yolo");
+
+
+                ###
+                    log:println(context.tokens);
+                    var basectx = context.type;
+                    log:println(basectx.name);
+                    var ln = function(a) {
+                        log:println(a);
+                    };
+                    this:set("println", ln);
+                    println("lol");
+                ###
+            """.trimIndent()
+    val lang = BaseLang()
+    StringArtusReader(script, "script").build(Context(lang.baseContextType))
 }
