@@ -265,7 +265,7 @@ open class StringArtusReader(val str: String, override val name: String) : Artus
 
 val jexl = JexlBuilder().sandbox({
     val sandbox = JexlSandbox(false)
-    val reflect = Reflections("com.artuslang.new", SubTypesScanner(false))
+    val reflect = Reflections("com.artuslang", SubTypesScanner(false))
     reflect.getSubTypesOf(Object::class.java).forEach {
         sandbox.white(it.name)
     }
