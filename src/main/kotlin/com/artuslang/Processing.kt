@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.artuslang.new
+package com.artuslang
 
 import org.apache.commons.jexl3.JexlBuilder
 import org.apache.commons.jexl3.JexlContext
@@ -189,6 +189,8 @@ class LangUtils(private val ctx: ScriptContext) {
     @JvmOverloads
     fun contextType(name: String, matchers: ArrayList<ContextMatcher>, parents: ArrayList<ContextType> = ArrayList()) = ContextType(name, matchers, parents)
 
+    fun context(type: ContextType) = Context(type)
+
     @JvmOverloads
     fun readFile(path: String, charset: String = Charset.defaultCharset().name()): ArtusReader {
         return FileArtusReader(File(path), charset)
@@ -200,6 +202,11 @@ class LangUtils(private val ctx: ScriptContext) {
 
     fun eval(code: String, vararg v: Pair<String, Any?>): Any? {
         return jexl.createScript(code, *v.map { it.first }.toTypedArray()).execute(ctx, *v.map { it.second }.toTypedArray())
+    }
+
+    @JvmOverloads
+    fun import(path: String, ctx: Context, charset: String = Charset.defaultCharset().name()): Context {
+        return readFile(path, charset).build(ctx)
     }
 
     /**

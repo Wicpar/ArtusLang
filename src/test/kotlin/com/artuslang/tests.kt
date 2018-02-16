@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package com.artuslang.lang
-
-import com.artuslang.new.*
+package com.artuslang
 
 /**
  * Created on 23/01/2018 by Frederic
