@@ -16,57 +16,48 @@
 
 package com.artuslang
 
+import org.junit.jupiter.api.Test
+
 /**
  * Created on 23/01/2018 by Frederic
  */
 
-class BaseLang() {
-
+class BaseLang {
     val baseCtx = ScriptContext()
-
     val utils = LangUtils(baseCtx)
-
     val noType = TokenType("", hashMapOf())
-    val sscriptTagType = TokenType("scriptTag", hashMapOf())
+    val sscriptTagType = TokenType("directive", hashMapOf())
 
     val spaceMatcher = TokenMatcher(noType, "[\\p{Z}\\r]+|\\n")
     val spaceContext = utils.contextMatcherNop(spaceMatcher)
     val spaceableContext = ContextType("spaceable", arrayListOf(spaceContext))
 
-
-    val directiveMatcher = ContextMatcher(TokenMatcher(sscriptTagType, "#.*?\\n"), { token, context ->
-        println(token.text.substring(1, token.text.length - 1))
-        utils.eval(token.text.substring(1, token.text.length - 1), Pair("token", token), Pair("context", context)) as? Context
+    val directiveMatcher = ContextMatcher(TokenMatcher(sscriptTagType, "#.*?(?:\\n|\\z)"), { token, context ->
+        utils.eval(token.text.substring(1, token.text.length - 1), Pair("context", context)) as? Context
                 ?: context
     })
 
     val multilineMatcher = ContextMatcher(TokenMatcher(sscriptTagType, "###.*?###"), { token, context ->
-        println(token.text.substring(3, token.text.length - 3))
-        utils.eval(token.text.substring(3, token.text.length - 3), Pair("token", token), Pair("context", context)) as? Context
+        utils.eval(token.text.substring(3, token.text.length - 3), Pair("context", context)) as? Context
                 ?: context
     })
 
-    val baseContextType = ContextType("script", arrayListOf(multilineMatcher, directiveMatcher), arrayListOf(spaceableContext))
+    val baseContextType = ContextType("base", arrayListOf(multilineMatcher, directiveMatcher), arrayListOf(spaceableContext))
+
+    init {
+        val contexts = HashMap(listOf(spaceableContext, baseContextType).associate { Pair(it.name, it) })
+        val matchers = hashMapOf(Pair("spaces", spaceMatcher))
+        val tokens = HashMap(listOf(noType, sscriptTagType).associate { Pair(it.name, it) })
+        baseCtx.registerNamespace("contexts", contexts)
+        baseCtx.registerNamespace("matchers", matchers)
+        baseCtx.registerNamespace("tokens", tokens)
+    }
 }
 
-
-fun main(args: Array<String>) {
-    val script =
-            """
-                # log:println("yolo");
-
-
-                ###
-                    log:println(context.tokens);
-                    var basectx = context.type;
-                    log:println(basectx.name);
-                    var ln = function(a) {
-                        log:println(a);
-                    };
-                    this:set("println", ln);
-                    println("lol");
-                ###
-            """.trimIndent()
-    val lang = BaseLang()
-    StringArtusReader(script, "script").build(Context(lang.baseContextType))
+internal class Test {
+    @Test
+    fun test() {
+        val lang = BaseLang()
+        lang.utils.import("src/test/kotlin/com/artuslang/testfiles/main.artus", lang.baseContextType)
+    }
 }

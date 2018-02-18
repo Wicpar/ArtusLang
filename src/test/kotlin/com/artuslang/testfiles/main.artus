@@ -1,0 +1,2 @@
+# lang:import(folder + "/utils/import.artus", context.type);
+# import("utils/import.artus");

@@ -24,6 +24,7 @@ import org.intellij.lang.annotations.Language
 import org.reflections.Reflections
 import org.reflections.scanners.SubTypesScanner
 import java.io.File
+import java.nio.ByteBuffer
 import java.nio.charset.Charset
 
 /**
@@ -157,7 +158,17 @@ class ScriptContext : JexlContext, JexlContext.NamespaceResolver {
     }
 
     override fun set(name: String?, value: Any?) {
-        map[name] = value
+        if (value == null)
+            map.remove(name)
+        else
+            map[name] = value
+    }
+
+    fun put(name: String, value: Any?): Any? {
+        return if (value == null)
+            map.remove(name)
+        else
+            map.put(name, value)
     }
 
     override fun resolveNamespace(name: String?): Any? {
@@ -175,11 +186,23 @@ class LangUtils(private val ctx: ScriptContext) {
     @JvmOverloads
     fun tokenMatcher(type: TokenType, @Language("RegExp") pattern: String, group: Int = 1) = TokenMatcher(type, pattern, group)
 
-    fun contextMatcher(matcher: TokenMatcher, event: Closure) = ContextMatcher(matcher, { token, context -> event.execute(ctx, token, context) as Context })
+    fun contextMatcher(matcher: TokenMatcher, event: Closure) = ContextMatcher(matcher, { token, context ->
+        val tmpctx = ctx.put("context", context)
+        val ret = event.execute(ctx, token, context) as Context
+        ctx.put("context", tmpctx)
+        ret
+    })
 
     fun contextMatcherPush(matcher: TokenMatcher, type: ContextType) = ContextMatcher(matcher, { _, context -> context.child(type) })
     fun contextMatcherPop(matcher: TokenMatcher) = ContextMatcher(matcher, { _, context -> context.parent!! })
-    fun contextMatcherPopWith(matcher: TokenMatcher, closure: Closure) = ContextMatcher(matcher, { token, context -> closure.execute(ctx, token, context); context.parent!! })
+    fun contextMatcherPopWith(matcher: TokenMatcher, closure: Closure) = ContextMatcher(matcher, { token, context ->
+        val tmpctx = ctx.put("context", context)
+        closure.execute(ctx, token, context)
+        val ret = context.parent!!
+        ctx.put("context", tmpctx)
+        ret
+    })
+
     fun contextMatcherSwitch(matcher: TokenMatcher, type: ContextType) = ContextMatcher(matcher, { _, context ->
         context.parent?.child(type) ?: Context(type)
     })
@@ -196,18 +219,48 @@ class LangUtils(private val ctx: ScriptContext) {
         return FileArtusReader(File(path), charset)
     }
 
+    fun writeFile(path: String, buffer: ByteBuffer) {
+        val file = File(path)
+        val dir = File(".")
+        if (!file.canonicalPath.contains(dir.canonicalPath + File.separator)) {
+            throw RuntimeException("illegal file access, only children of local folder allowed")
+        }
+        file.mkdirs()
+        buffer.reset()
+        val arr = ByteArray(buffer.remaining())
+        buffer.get(arr)
+        buffer.clear()
+        file.writeBytes(arr)
+    }
+
     fun readString(str: String, name: String): ArtusReader {
         return StringArtusReader(str, name)
     }
 
     fun eval(code: String, vararg v: Pair<String, Any?>): Any? {
-        return jexl.createScript(code, *v.map { it.first }.toTypedArray()).execute(ctx, *v.map { it.second }.toTypedArray())
+        val tmp = v.map { Pair(it.first, ctx.put(it.first, it.second)) }
+        val ret =  jexl.createScript(code).execute(ctx)
+        tmp.forEach { ctx.put(it.first, it.second) }
+        return ret
     }
 
     @JvmOverloads
-    fun import(path: String, ctx: Context, charset: String = Charset.defaultCharset().name()): Context {
-        return readFile(path, charset).build(ctx)
+    fun import(path: String, ctx: ContextType, charset: String = Charset.defaultCharset().name()) {
+        val fs = File(path)
+        val file = this.ctx.put("file", fs.path)
+        val folder = this.ctx.put("folder", fs.parentFile.path)
+        try {
+            readFile(fs.path, charset).build(Context(ctx))
+        } catch (t: Throwable) {
+            System.err.println("error: $fs: $t")
+            throw t
+        } finally {
+            this.ctx.put("file", file)
+            this.ctx.put("folder", folder)
+        }
     }
+
+    fun data() = Data()
 
     /**
      * easy constructors for allowed types
@@ -233,7 +286,7 @@ interface ArtusReader {
 class FileArtusReader(file: File, charset: String = Charset.defaultCharset().name()) : StringArtusReader({
     val dir = File(".")
     if (!file.canonicalPath.contains(dir.canonicalPath + File.separator)) {
-        throw RuntimeException("illegal file access, only children of local folder allowed")
+        throw RuntimeException("$file: illegal file access, only children of local folder allowed")
     }
     file.readText(Charset.forName(charset))
 }(), file.path)
@@ -277,3 +330,44 @@ val jexl = JexlBuilder().sandbox({
     sandbox.white(Pair::class.java.name)
     sandbox
 }()).create()
+
+/**
+ * use like ByteBuffer but flexible size, bytebuffers are based on capacity and not limit
+ */
+class Data {
+    private val buf = arrayListOf<ByteGroup>()
+    private var size = 0
+
+    fun allocate(size: Int): ByteBuffer {
+        val ret = ByteBuffer.allocateDirect(size)
+        add(ret)
+        return ret
+    }
+
+    fun add(buffer: ByteBuffer) {
+        val group = ArrayByteGroup(buffer, size)
+        buf.add(group)
+        size += group.size
+    }
+
+    fun toByteBuffer(): ByteBuffer {
+        val ret = ByteBuffer.allocate(size)
+        buf.forEach {
+            val dat = it.dat
+            dat.clear()
+            ret.put(dat)
+        }
+        ret.clear()
+        return ret
+    }
+}
+
+interface ByteGroup {
+    val size: Int
+    val offset: Int
+    val dat: ByteBuffer
+}
+
+class ArrayByteGroup(override val dat: ByteBuffer, override val offset: Int): ByteGroup {
+    override val size = dat.capacity()
+}
