@@ -17,6 +17,7 @@
 package com.artuslang
 
 import org.junit.jupiter.api.Test
+import kotlin.system.measureNanoTime
 
 /**
  * Created on 23/01/2018 by Frederic
@@ -59,5 +60,8 @@ internal class Test {
     fun test() {
         val lang = BaseLang()
         lang.utils.import("src/test/kotlin/com/artuslang/testfiles/main.artus", lang.baseContextType)
+        println("${measureNanoTime {
+            lang.utils.import("src/test/kotlin/com/artuslang/testfiles/main.artus", lang.baseContextType)
+        } / 1000000f} ms")
     }
 }

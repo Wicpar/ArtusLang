@@ -371,3 +371,24 @@ interface ByteGroup {
 class ArrayByteGroup(override val dat: ByteBuffer, override val offset: Int): ByteGroup {
     override val size = dat.capacity()
 }
+
+class NDefTree() {
+
+    private val root = NDefNode()
+    private val symmetricalTypes = arrayListOf<Class<*>>()
+
+    private inner class NDefNode() {
+
+    }
+
+    fun symmetrcalPathType(type: Class<*>) {
+        symmetricalTypes.add(type)
+    }
+}
+
+/**
+ * [path] the path to follow nodes
+ * [features] the path will priorize ambiguities with the most matching features, features defined with lower indexes have priority
+ * [filters] the path will not follow any node that is missing a filter, following the one with the least superfluous filters
+ */
+class NDefPath(val path: List<Any>, val features: List<Any> = listOf(), val filters: List<Any> = listOf())
