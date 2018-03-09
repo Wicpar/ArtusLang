@@ -374,21 +374,86 @@ class ArrayByteGroup(override val dat: ByteBuffer, override val offset: Int): By
 
 class NDefTree() {
 
-    private val root = NDefNode()
-    private val symmetricalTypes = arrayListOf<Class<*>>()
+    private val root = NDefNode(hashSetOf(), hashSetOf())
+    private val nodeBuilders = HashMap<Class<*>, (Any) -> NDefNode>()
 
-    private inner class NDefNode() {
+
+    open class NDefNode(val features: HashSet<Any>, val filters: HashSet<Any>) {
+        protected val map = HashMap<Any, HashSet<NDefNode>>()
+        protected val genMap = HashMap<HashSet<Class<*>>, HashSet<NDefNodeGen>>()
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is NDefNodeGen) return false
+            return true
+        }
+
+        override fun hashCode(): Int {
+            return javaClass.hashCode()
+        }
+
+
+        fun get(elem: Any, features: List<Any>, filters: List<Any>): NDefNode? {
+            var nodes: List<NDefNode> = map[elem]?.let { ArrayList(it) } ?: listOf()
+            nodes += genMap.filterKeys {
+                it.contains(elem.javaClass)
+            }.values.flatten().filter {
+                it.couldGen(elem, features, filters)
+            }.mapNotNull {
+                it.gen(elem, features, filters)
+            }
+            if (filters.isNotEmpty()) {
+                nodes = nodes.filter { it.filters.containsAll(filters) }
+            }
+            if (features.isNotEmpty()) {
+                nodes = nodes.filter { HashSet(features).containsAll(it.features) }
+            }
+            nodes = nodes.sortedWith(Comparator { o1, o2 ->
+                val featureSize = o1.features.size - o2.features.size
+                if (featureSize != 0) return@Comparator featureSize
+                if (o1.features != o2.features) {
+                    features.forEach {
+                        val h1 = if (o1.features.contains(it)) 1 else 0
+                        val h2 = if (o2.features.contains(it)) 1 else 0
+                        val res = h1 - h2
+                        if (res != 0) return@Comparator res
+                    }
+                }
+                o1.filters.size - o2.filters.size
+            })
+            return nodes.firstOrNull()
+        }
+
+        fun put(elem: Any, node: NDefNode): NDefNode? {
+            val nodes = map[elem]
+            val nd = nodes?.find {
+                    it.features == node.features && it.filters == node.filters
+                } ?: node
+            if (nd.javaClass != node.javaClass) {
+                return null
+            }
+            nd.features.addAll(features)
+            nd.filters.addAll(filters)
+            nodes?.add(nd) ?: map.getOrPut(elem, { hashSetOf() }).add(nd)
+            return nd
+        }
+
+        fun put(classes: HashSet<Class<*>>, gen: NDefNodeGen) {
+            genMap.getOrPut(classes, { hashSetOf() }).add(gen)
+        }
+    }
+
+    abstract class NDefNodeGen(features: HashSet<Any>, filters: HashSet<Any>): NDefNode(features, filters) {
+        abstract fun couldGen(elem: Any, features: List<Any>, filters: List<Any>): Boolean
+        abstract fun gen(elem: Any, features: List<Any>, filters: List<Any>): NDefNode?
 
     }
 
-    fun symmetrcalPathType(type: Class<*>) {
-        symmetricalTypes.add(type)
-    }
 }
 
 /**
  * [path] the path to follow nodes
  * [features] the path will priorize ambiguities with the most matching features, features defined with lower indexes have priority
- * [filters] the path will not follow any node that is missing a filter, following the one with the least superfluous filters
+ * [filters] the path will not follow any node that is missing a filter, if features are not discernable, it will take the one with closest filter match
  */
 class NDefPath(val path: List<Any>, val features: List<Any> = listOf(), val filters: List<Any> = listOf())
