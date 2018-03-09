@@ -1,6 +1,5 @@
 ###
     var import = function(path, type, charset) {
-        log:println(folder);
         if (charset != null) {
             lang:import(folder + "/" + path, type ?: context.type, charset);
         } else {
