@@ -16,10 +16,10 @@
 
     var spaceable = contexts:get("spaceable");
 
-    var nameMatcher = lang:matcher(nameType, "[\p{Pc}\p{L}\p{M}\p{No}][\p{Pc}\p{L}\p{M}\p{N}]*");
+    var nameMatcher = lang:tokenMatcher(nameType, "[\p{Pc}\p{L}\p{M}\p{No}][\p{Pc}\p{L}\p{M}\p{N}]*");
 
-    var namespaceNameCtx = lang:ContextType("artus.namespace.name", lang:arrayListOf(
-        lang:contextMatcherPush(namespace) //missing
+    var namespaceNameCtx = lang:contextType("artus.namespace.name", lang:arrayListOf(
+        //lang:contextMatcherPush(namespace) //missing
     ), lang:arrayListOf(spaceable));
 
     var fileBodyCtx = lang:contextType("artus.file.body", lang:arrayListOf(
@@ -29,5 +29,5 @@
         lang:contextMatcherPop(bc)
     ), lang:arrayListOf(fileBodyCtx));
 
-    context.type.parents.add(0, fileBodyCtx);
+    context.type.addParent(fileBodyCtx);
 ###

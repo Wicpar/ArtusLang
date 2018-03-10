@@ -58,8 +58,8 @@ class BaseLang {
 internal class Test {
     @Test
     fun test() {
-        //preheat
-        BaseLang().apply { utils.include("src/test/kotlin/com/artuslang/testfiles/main.artus", Context(baseContextType)) }
+        //preheat jexl
+        BaseLang().apply { StringArtusReader("###;###", "").build(Context(baseContextType)) }
         //real thing
         println("${measureNanoTime {
             BaseLang().apply { utils.include("src/test/kotlin/com/artuslang/testfiles/main.artus", Context(baseContextType)) }
