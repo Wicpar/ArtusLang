@@ -58,10 +58,12 @@ class BaseLang {
 internal class Test {
     @Test
     fun test() {
+        //preheat
+        BaseLang().apply { utils.include("src/test/kotlin/com/artuslang/testfiles/main.artus", Context(baseContextType)) }
+        //real thing
         val lang = BaseLang()
-        lang.utils.import("src/test/kotlin/com/artuslang/testfiles/main.artus", lang.baseContextType)
         println("${measureNanoTime {
-            lang.utils.import("src/test/kotlin/com/artuslang/testfiles/main.artus", lang.baseContextType)
+            lang.utils.include("src/test/kotlin/com/artuslang/testfiles/main.artus", Context(lang.baseContextType))
         } / 1000000f} ms")
     }
 }
