@@ -190,9 +190,9 @@ class LangUtils(private val ctx: ScriptContext) {
 
     fun contextMatcher(matcher: TokenMatcher, event: Closure) = ContextMatcher(matcher, { token, context ->
         val tmpctx = ctx.put("context", context)
-        val ret = event.execute(ctx, token, context) as Context
+        val ret = event.execute(ctx, token, context) as? Context
         ctx.put("context", tmpctx)
-        ret
+        ret ?: context
     })
 
     fun contextMatcherPush(matcher: TokenMatcher, type: ContextType) = ContextMatcher(matcher, { _, context -> context.child(type) })
@@ -357,7 +357,7 @@ open class StringArtusReader(str: String, override val name: String) : ArtusRead
     override fun build(ctx: Context): Context {
         var ctx: Context = ctx
         while (data.isNotEmpty()) {
-            ctx = ctx.type.getStack().fold(null as Context?, { acc, contextMatcher ->
+            ctx = ctx.type.getStack().toList().fold(null as Context?, { acc, contextMatcher ->
                 acc ?: {
                     val matched = contextMatcher.matcher.regex.find(data)
                     matched?.groups?.get(contextMatcher.matcher.group)?.let {
