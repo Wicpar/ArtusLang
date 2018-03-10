@@ -1,0 +1,15 @@
+###
+    var tokens = lang:hashMapOf();
+    var nsp = this:resolveNamespace("tokens");
+    if (nsp != null) {
+        tokens.putAll(nsp);
+    }
+    this:put("tokenType", function(name) {
+        var ret = tokens.get(name);
+        if (ret == null) {
+            ret = lang:tokenType(name);
+            tokens.put(name, ret);
+        }
+        return ret;
+    });
+###

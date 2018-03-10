@@ -1,0 +1,11 @@
+###
+    lang:import("typesUtil.artus");
+    var literals = lang:hashMapOf();
+    this:put("literalMatcher", function(literal, tokenType) {
+        var lit = literals.get(literal);
+        if (lit == null) {
+            lit = lang:tokenMatcher(tokenType ?: tokens:get(""), literal);
+        }
+        return lit;
+    });
+###

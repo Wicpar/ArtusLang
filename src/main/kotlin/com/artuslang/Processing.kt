@@ -182,7 +182,8 @@ class ScriptContext : JexlContext, JexlContext.NamespaceResolver {
 }
 
 class LangUtils(private val ctx: ScriptContext) {
-    fun tokenType(name: String, properties: HashMap<String, Any?>) = TokenType(name, properties)
+    @JvmOverloads
+    fun tokenType(name: String, properties: HashMap<String, Any?> = HashMap()) = TokenType(name, properties)
 
     @JvmOverloads
     fun tokenMatcher(type: TokenType, @Language("RegExp") pattern: String, group: Int = 1) = TokenMatcher(type, pattern, group)
