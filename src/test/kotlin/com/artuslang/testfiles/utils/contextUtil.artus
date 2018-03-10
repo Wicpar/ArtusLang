@@ -1,0 +1,6 @@
+###
+    var nsp = this:resolveNamespace("contexts");
+    if (nsp == null) {
+        this:registerNamespace("contexts", lang:hashMapOf());
+    }
+###

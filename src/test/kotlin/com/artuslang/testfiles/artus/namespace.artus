@@ -1,15 +1,33 @@
 ###
     lang:import("../utils/typesUtil.artus");
     lang:import("../utils/literalMatcher.artus");
+    lang:import("../utils/contextUtil.artus");
     lang:import("../common/commonTree.artus");
+    lang:import("../common/spaceable.artus");
 
     var noType = tokenType("");
     var delimiterType = tokenType("delimiter");
     var keywordType = tokenType("keyword");
+    var nameType = tokenType("name");
 
     var bo = literalMatcher("\{", delimiterType);
     var bc = literalMatcher("\}", delimiterType);
     var namespace = literalMatcher("namespace", keywordType);
 
+    var spaceable = contexts:get("spaceable");
 
+    var nameMatcher = lang:matcher(nameType, "[\p{Pc}\p{L}\p{M}\p{No}][\p{Pc}\p{L}\p{M}\p{N}]*");
+
+    var namespaceNameCtx = lang:ContextType("artus.namespace.name", lang:arrayListOf(
+        lang:contextMatcherPush(namespace) //missing
+    ), lang:arrayListOf(spaceable));
+
+    var fileBodyCtx = lang:contextType("artus.file.body", lang:arrayListOf(
+        lang:contextMatcherPush(namespace, namespaceNameCtx)
+    ), lang:arrayListOf(spaceable));
+    var namespaceBodyCtx = lang:contextType("artus.namespace.body", lang:arrayListOf(
+        lang:contextMatcherPop(bc)
+    ), lang:arrayListOf(fileBodyCtx));
+
+    context.type.parents.add(0, fileBodyCtx);
 ###

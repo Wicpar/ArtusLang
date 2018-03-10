@@ -1,0 +1,10 @@
+###
+    lang:import("../utils/contextUtil.artus");
+    lang:import("../utils/typesUtil.artus");
+
+    if (contexts:get("spaceable") == null) {
+        var type = tokenType("");
+        var matcher = tokenMatcher(type, "[\\p{Z}\\r]+|\\n");
+        contexts:put("spaceable", contextType("spaceable", arrayListOf(lang:contextMatcherNop(spaceContext))));
+    }
+###
