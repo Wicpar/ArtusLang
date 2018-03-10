@@ -24,6 +24,7 @@ import org.intellij.lang.annotations.Language
 import org.reflections.Reflections
 import org.reflections.scanners.SubTypesScanner
 import java.io.File
+import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 
@@ -239,18 +240,61 @@ class LangUtils(private val ctx: ScriptContext) {
 
     fun eval(code: String, vararg v: Pair<String, Any?>): Any? {
         val tmp = v.map { Pair(it.first, ctx.put(it.first, it.second)) }
-        val ret =  jexl.createScript(code).execute(ctx)
+        val ret = jexl.createScript(code).execute(ctx)
         tmp.forEach { ctx.put(it.first, it.second) }
         return ret
     }
 
+    private val imported = HashMap<Pair<File, ContextType>, Context?>()
+
+    private fun ctxFilePath(path: String): File {
+        val ret = File(path).let { fs ->
+            val fpath = (this.ctx.get("folder") as? String)
+            if (!fs.isAbsolute && fpath != null) {
+                val folder = File(fpath)
+                folder.resolve(fs)
+            } else {
+                fs
+            }
+        }
+        return ret
+    }
+    /**
+     * loads once in separate context, if recursion occurs it is ignored
+     */
     @JvmOverloads
-    fun import(path: String, ctx: ContextType, charset: String = Charset.defaultCharset().name()) {
-        val fs = File(path)
+    fun import(path: String, ctx: ContextType = (this.ctx.get("context") as Context).type, charset: String = Charset.defaultCharset().name()): Context {
+        val fs = ctxFilePath(path)
+        val access = Pair(fs, ctx)
+        if (imported.containsKey(access))
+            imported[access]?.let { return it }
+        else
+            imported.put(access, null)
         val file = this.ctx.put("file", fs.path)
         val folder = this.ctx.put("folder", fs.parentFile.path)
         try {
-            readFile(fs.path, charset).build(Context(ctx))
+            val ret = readFile(fs.path, charset).build(Context(ctx))
+            imported.put(access, ret)
+            return ret
+        } catch (t: Throwable) {
+            System.err.println("error: $fs: $t")
+            throw t
+        } finally {
+            this.ctx.put("file", file)
+            this.ctx.put("folder", folder)
+        }
+    }
+
+    /**
+     * loads into specified context, useful for fragments
+     */
+    @JvmOverloads
+    fun include(path: String, ctx: Context = this.ctx.get("context") as Context, charset: String = Charset.defaultCharset().name()): Context {
+        val fs = ctxFilePath(path)
+        val file = this.ctx.put("file", fs.path)
+        val folder = this.ctx.put("folder", fs.parentFile.path)
+        try {
+            return readFile(fs.path, charset).build(ctx)
         } catch (t: Throwable) {
             System.err.println("error: $fs: $t")
             throw t
@@ -261,6 +305,19 @@ class LangUtils(private val ctx: ScriptContext) {
     }
 
     fun data() = Data()
+    fun tree() = NDefTree()
+    fun node(features: Array<Any>, filters: Array<Any>) = NDefTree.NDefNode(features.toHashSet(), filters.toHashSet())
+    fun genNode(features: Array<Any>, filters: Array<Any>, ordinal: Double, couldGen: Closure, gen: Closure) = object : NDefTree.NDefNodeGen(features.toHashSet(), filters.toHashSet(), ordinal) {
+        override fun couldGen(elem: Any, features: List<Any>, filters: List<Any>): Boolean {
+            return couldGen.execute(ctx, elem, features, filters) as Boolean? ?: false
+        }
+
+        override fun gen(elem: Any, features: List<Any>, filters: List<Any>): NDefTree.NDefNode? {
+            return gen.execute(ctx, elem, features, filters) as? NDefTree.NDefNode
+        }
+    }
+
+    fun nodeBuilder(fn: Closure): (Any, List<Any>, List<Any>) -> NDefTree.NDefNode? = { a, b, c -> fn.execute(ctx, a, b, c) as NDefTree.NDefNode? }
 
     /**
      * easy constructors for allowed types
@@ -275,7 +332,8 @@ class LangUtils(private val ctx: ScriptContext) {
 
 object Log {
     fun println(any: Any) = kotlin.io.println(any)
-    fun tokenErr(token: Token, msg: Any) = println("${token.location.origin}:${token.location.range}: token \"${token.text}\" error: $msg")
+    fun tokenErr(token: Token, msg: Any) = "${token.location.origin}:${token.location.range}: token \"${token.text}\" error: $msg"
+    fun `throw`(msg: String): Unit = throw RuntimeException(msg)
 }
 
 interface ArtusReader {
@@ -291,7 +349,7 @@ class FileArtusReader(file: File, charset: String = Charset.defaultCharset().nam
     file.readText(Charset.forName(charset))
 }(), file.path)
 
-open class StringArtusReader(val str: String, override val name: String) : ArtusReader {
+open class StringArtusReader(str: String, override val name: String) : ArtusReader {
     private var data = str
     private var offset = 0
 
@@ -318,8 +376,7 @@ open class StringArtusReader(val str: String, override val name: String) : Artus
 
 val jexl = JexlBuilder().sandbox({
     val sandbox = JexlSandbox(false)
-    val reflect = Reflections("com.artuslang", SubTypesScanner(false))
-    reflect.getSubTypesOf(Object::class.java).forEach {
+    Reflections("com.artuslang", SubTypesScanner(false)).getSubTypesOf(Object::class.java).forEach {
         sandbox.white(it.name)
     }
     sandbox.white(String::class.java.name)
@@ -327,7 +384,11 @@ val jexl = JexlBuilder().sandbox({
     sandbox.white(List::class.java.name)
     sandbox.white(HashMap::class.java.name)
     sandbox.white(ArrayList::class.java.name)
+    sandbox.white(HashSet::class.java.name)
     sandbox.white(Pair::class.java.name)
+    Reflections("java.nio").getSubTypesOf(Buffer::class.java).forEach {
+        sandbox.white(it.name)
+    }
     sandbox
 }()).create()
 
@@ -339,7 +400,7 @@ class Data {
     private var size = 0
 
     fun allocate(size: Int): ByteBuffer {
-        val ret = ByteBuffer.allocateDirect(size)
+        val ret = ByteBuffer.allocate(size)
         add(ret)
         return ret
     }
@@ -368,19 +429,18 @@ interface ByteGroup {
     val dat: ByteBuffer
 }
 
-class ArrayByteGroup(override val dat: ByteBuffer, override val offset: Int): ByteGroup {
+class ArrayByteGroup(override val dat: ByteBuffer, override val offset: Int) : ByteGroup {
     override val size = dat.capacity()
 }
 
-class NDefTree() {
+class NDefTree {
 
-    private val root = NDefNode(hashSetOf(), hashSetOf())
-    private val nodeBuilders = HashMap<Class<*>, (Any) -> NDefNode>()
-
+    val root = NDefNode(hashSetOf(), hashSetOf())
 
     open class NDefNode(val features: HashSet<Any>, val filters: HashSet<Any>) {
         protected val map = HashMap<Any, HashSet<NDefNode>>()
-        protected val genMap = HashMap<HashSet<Class<*>>, HashSet<NDefNodeGen>>()
+        protected val genMap = HashMap<Class<*>, HashSet<NDefNodeGen>>()
+        val properties = HashMap<Any?, Any?>()
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -395,19 +455,14 @@ class NDefTree() {
 
         fun get(elem: Any, features: List<Any>, filters: List<Any>): NDefNode? {
             var nodes: List<NDefNode> = map[elem]?.let { ArrayList(it) } ?: listOf()
-            nodes += genMap.filterKeys {
-                it.contains(elem.javaClass)
-            }.values.flatten().filter {
-                it.couldGen(elem, features, filters)
-            }.mapNotNull {
-                it.gen(elem, features, filters)
-            }
+
             if (filters.isNotEmpty()) {
                 nodes = nodes.filter { it.filters.containsAll(filters) }
             }
             if (features.isNotEmpty()) {
                 nodes = nodes.filter { HashSet(features).containsAll(it.features) }
             }
+
             nodes = nodes.sortedWith(Comparator { o1, o2 ->
                 val featureSize = o1.features.size - o2.features.size
                 if (featureSize != 0) return@Comparator featureSize
@@ -421,14 +476,25 @@ class NDefTree() {
                 }
                 o1.filters.size - o2.filters.size
             })
-            return nodes.firstOrNull()
+
+            // generate if needed, first non null is valid
+            return if (nodes.isEmpty()) {
+                genMap[elem.javaClass]?.filter {
+                    it.couldGen(elem, features, filters)
+                }?.sortedBy {
+                    it.ordinal
+                }?.fold(null as NDefNode?, { acc, it ->
+                    acc ?: it.gen(elem, features, filters)
+                })
+            } else
+                nodes.firstOrNull()
         }
 
         fun put(elem: Any, node: NDefNode): NDefNode? {
             val nodes = map[elem]
             val nd = nodes?.find {
-                    it.features == node.features && it.filters == node.filters
-                } ?: node
+                it.features == node.features && it.filters == node.filters
+            } ?: node
             if (nd.javaClass != node.javaClass) {
                 return null
             }
@@ -439,16 +505,54 @@ class NDefTree() {
         }
 
         fun put(classes: HashSet<Class<*>>, gen: NDefNodeGen) {
-            genMap.getOrPut(classes, { hashSetOf() }).add(gen)
+            classes.forEach {
+                genMap.getOrPut(it, { hashSetOf() }).add(gen)
+            }
+        }
+
+        fun getAllNodes(): HashSet<NDefNode> {
+            return (map.values + genMap.values).flatten().toHashSet() // hashset because there can be duplicates on different classes (eg. a namespace can be bound to a string and ID)
+        }
+
+        /**
+         * useful for buffering nodes, with different properties
+         */
+        fun copyWith(features: Array<Any>, filters: Array<Any>): NDefNode {
+            val ret = NDefNode(features.toHashSet(), filters.toHashSet())
+            ret.genMap.putAll(genMap)
+            ret.map.putAll(map)
+            ret.properties.putAll(properties)
+            return ret
         }
     }
 
-    abstract class NDefNodeGen(features: HashSet<Any>, filters: HashSet<Any>): NDefNode(features, filters) {
-        abstract fun couldGen(elem: Any, features: List<Any>, filters: List<Any>): Boolean
-        abstract fun gen(elem: Any, features: List<Any>, filters: List<Any>): NDefNode?
+    abstract class NDefNodeGen(features: HashSet<Any>, filters: HashSet<Any>, val ordinal: Double) : NDefNode(features, filters) {
 
+        /**
+         * fast elimination check, false if cannot possibly generate, gen must not be called if return is false
+         */
+        abstract fun couldGen(elem: Any, features: List<Any>, filters: List<Any>): Boolean
+
+        /**
+         * attempt to generate, if fail return null, not buffered, it has to be handled by the implementation for speed
+         */
+        abstract fun gen(elem: Any, features: List<Any>, filters: List<Any>): NDefNode?
     }
 
+    fun findNode(path: NDefPath): NDefNode? {
+        return path.path.fold(root as NDefNode?, { acc, it ->
+            acc?.get(it, path.features, path.filters)
+        })
+    }
+
+    fun findNodeOrBuild(path: NDefPath, builders: HashMap<Class<*>, (Any, List<Any>, List<Any>) -> NDefNode?>): NDefNode? {
+        return path.path.fold(root as NDefNode?, { acc, it ->
+            if (acc == null) {
+                return null
+            }
+            acc.get(it, path.features, path.filters) ?: builders[it.javaClass]?.invoke(it, path.features, path.filters)?.let { node -> acc.put(it, node) }
+        })
+    }
 }
 
 /**
