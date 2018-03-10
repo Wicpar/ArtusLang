@@ -1,1 +1,2 @@
 # lang:import("common/commonTree.artus");
+# lang:import("artus/namespace.artus");

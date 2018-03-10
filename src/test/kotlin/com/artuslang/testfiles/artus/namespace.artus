@@ -1,0 +1,15 @@
+###
+    lang:import("../utils/typesUtil.artus");
+    lang:import("../utils/literalMatcher.artus");
+    lang:import("../common/commonTree.artus");
+
+    var noType = tokenType("");
+    var delimiterType = tokenType("delimiter");
+    var keywordType = tokenType("keyword");
+
+    var bo = literalMatcher("\{", delimiterType);
+    var bc = literalMatcher("\}", delimiterType);
+    var namespace = literalMatcher("namespace", keywordType);
+
+
+###
