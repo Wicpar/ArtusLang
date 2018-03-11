@@ -1,1 +1,5 @@
-# this:put("tree", lang:tree());
+###
+    var tree = lang:tree();
+    this:put("tree", tree);
+
+###

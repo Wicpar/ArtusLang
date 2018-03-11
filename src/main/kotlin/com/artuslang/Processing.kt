@@ -27,6 +27,7 @@ import java.io.File
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
+import kotlin.math.min
 
 /**
  * Created on 22/01/2018 by Frederic
@@ -189,24 +190,26 @@ class LangUtils(private val ctx: ScriptContext) {
     fun tokenMatcher(type: TokenType, @Language("RegExp") pattern: String, group: Int = 1) = TokenMatcher(type, pattern, group)
 
     fun contextMatcher(matcher: TokenMatcher, event: Closure) = ContextMatcher(matcher, { token, context ->
-        val tmpctx = ctx.put("context", context)
         val ret = event.execute(ctx, token, context) as? Context
-        ctx.put("context", tmpctx)
         ret ?: context
     })
 
     fun contextMatcherPush(matcher: TokenMatcher, type: ContextType) = ContextMatcher(matcher, { _, context -> context.child(type) })
     fun contextMatcherPop(matcher: TokenMatcher) = ContextMatcher(matcher, { _, context -> context.parent!! })
     fun contextMatcherPopWith(matcher: TokenMatcher, closure: Closure) = ContextMatcher(matcher, { token, context ->
-        val tmpctx = ctx.put("context", context)
         closure.execute(ctx, token, context)
         val ret = context.parent!!
-        ctx.put("context", tmpctx)
         ret
     })
 
     fun contextMatcherSwitch(matcher: TokenMatcher, type: ContextType) = ContextMatcher(matcher, { _, context ->
         context.parent?.child(type) ?: Context(type)
+    })
+
+    fun contextMatcherSwitchWith(matcher: TokenMatcher, type: ContextType, closure: Closure) = ContextMatcher(matcher, { token, context ->
+        val ret = context.parent?.child(type) ?: Context(type)
+        closure.execute(ctx, token, context, ret)
+        ret
     })
 
     fun contextMatcherNop(matcher: TokenMatcher) = ContextMatcher(matcher, { _, context -> context })
@@ -369,7 +372,7 @@ open class StringArtusReader(str: String, override val name: String) : ArtusRead
                         contextMatcher.event(token, ctx)
                     }
                 }()
-            }) ?: throw RuntimeException("no Context in source $name at $offset: \"${data.subSequence(0, 20)}...\"")
+            }) ?: throw RuntimeException("no Context in source $name at $offset: \"${data.subSequence(0, min(20, data.lastIndex))}...\"")
         }
         return ctx
     }

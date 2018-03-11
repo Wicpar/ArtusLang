@@ -1,2 +1,6 @@
 # lang:import("common/commonTree.artus");
 # lang:import("artus/namespace.artus");
+
+namespace com.qwertyuiopasdfghjklzxcvbnm.汉语.漢語.العَرَبِيَّة.русский_язык {
+
+}

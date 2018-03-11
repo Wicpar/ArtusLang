@@ -12,22 +12,44 @@
 
     var bo = literalMatcher("\{", delimiterType);
     var bc = literalMatcher("\}", delimiterType);
+    var dot = literalMatcher("\.", delimiterType);
     var namespace = literalMatcher("namespace", keywordType);
 
     var spaceable = contexts:get("spaceable");
 
     var nameMatcher = lang:tokenMatcher(nameType, "[\p{Pc}\p{L}\p{M}\p{No}][\p{Pc}\p{L}\p{M}\p{N}]*");
 
-    var namespaceNameCtx = lang:contextType("artus.namespace.name", lang:arrayListOf(
-        //lang:contextMatcherPush(namespace) //missing
+    var namespaceBodyCtx = lang:contextType("artus.namespace", lang:arrayListOf(
+        lang:contextMatcherPop(bc)
+    ));
+
+    var namespaceNameCtx = lang:contextType("artus.namespace.name", lang:arrayListOf(), lang:arrayListOf(spaceable));
+
+    var namespaceSwitchCtx = lang:contextType("artus.namespace.switch", lang:arrayListOf(
+        lang:contextMatcherSwitchWith(bo, namespaceBodyCtx, function(token, tokenCtx, newCtx) {
+            var names = tokenCtx.properties["artus.namespace.names"]
+            var ids = newCtx.properties["artus.path.ids"] ?: lang:arrayListOf();
+            ids.addAll(names);
+            newCtx.properties["artus.path.ids"] = ids;
+        }),
+        lang:contextMatcherSwitchWith(dot, namespaceNameCtx, function(token, tokenCtx, newCtx) {
+            newCtx.properties["artus.namespace.names"] = tokenCtx.properties["artus.namespace.names"];
+        })
     ), lang:arrayListOf(spaceable));
+
+    namespaceNameCtx.addMatcher(
+        lang:contextMatcherSwitchWith(nameMatcher, namespaceSwitchCtx, function(token, tokenCtx, newCtx) {
+            var names = tokenCtx.properties["artus.namespace.names"] ?: lang:arrayListOf();
+            names.add(token.text);
+            newCtx.properties["artus.namespace.names"] = names;
+        })
+    );
 
     var fileBodyCtx = lang:contextType("artus.file.body", lang:arrayListOf(
         lang:contextMatcherPush(namespace, namespaceNameCtx)
     ), lang:arrayListOf(spaceable));
-    var namespaceBodyCtx = lang:contextType("artus.namespace.body", lang:arrayListOf(
-        lang:contextMatcherPop(bc)
-    ), lang:arrayListOf(fileBodyCtx));
+
+    namespaceBodyCtx.addParent(fileBodyCtx);
 
     context.type.addParent(fileBodyCtx);
 ###
