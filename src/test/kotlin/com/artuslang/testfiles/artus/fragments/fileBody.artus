@@ -1,0 +1,10 @@
+###
+    var root = "../../";
+    lang:import(root + "utils/contextUtil.artus");
+    lang:import(root + "utils/typesUtil.artus");
+    lang:import("ignore.artus");
+
+    var fileBodyCtx = lang:contextType("artus.file.body", lang:arrayListOf(), lang:arrayListOf(ignore));
+    contexts:put("artus.file.body", fileBodyCtx);
+    context.type.addParent(fileBodyCtx);
+###

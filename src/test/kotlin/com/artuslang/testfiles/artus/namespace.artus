@@ -2,8 +2,8 @@
     lang:import("../utils/typesUtil.artus");
     lang:import("../utils/literalMatcher.artus");
     lang:import("../utils/contextUtil.artus");
-    lang:import("../common/commonTree.artus");
-    lang:import("../common/spaceable.artus");
+    lang:import("fragments/ignore.artus");
+    lang:import("fragments/fileBody.artus");
 
     var noType = tokenType("");
     var delimiterType = tokenType("delimiter");
@@ -14,20 +14,21 @@
     var bc = literalMatcher("\}", delimiterType);
     var namespace = literalMatcher("namespace", keywordType);
 
-    var spaceable = contexts:get("spaceable");
+    var ignore = contexts:get("artus.ignore");
 
     var nameMatcher = lang:tokenMatcher(nameType, "[\p{Pc}\p{L}\p{M}\p{No}][\p{Pc}\p{L}\p{M}\p{N}]*");
 
-    var namespaceNameCtx = lang:contextType("artus.namespace.name", lang:arrayListOf(
-        //lang:contextMatcherPush(namespace) //missing
-    ), lang:arrayListOf(spaceable));
-
-    var fileBodyCtx = lang:contextType("artus.file.body", lang:arrayListOf(
-        lang:contextMatcherPush(namespace, namespaceNameCtx)
-    ), lang:arrayListOf(spaceable));
     var namespaceBodyCtx = lang:contextType("artus.namespace.body", lang:arrayListOf(
         lang:contextMatcherPop(bc)
-    ), lang:arrayListOf(fileBodyCtx));
+    ));
 
-    context.type.addParent(fileBodyCtx);
+    var namespaceNameCtx = lang:contextType("artus.namespace.name", lang:arrayListOf(
+        //lang:contextMatcherPush(namespace) //missing
+    ), lang:arrayListOf(ignore));
+
+    var fileBodyCtx = contexts:get("artus.file.body")
+
+    fileBodyCtx.addMatcher(lang:contextMatcherPush(namespace, namespaceNameCtx));
+
+    namespaceBodyCtx.addParent(fileBodyCtx);
 ###
