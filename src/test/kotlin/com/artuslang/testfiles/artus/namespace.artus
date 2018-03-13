@@ -4,6 +4,7 @@
     lang:import("../utils/contextUtil.artus");
     lang:import("fragments/ignore.artus");
     lang:import("fragments/fileBody.artus");
+    lang:import("matchers/name.artus");
 
     var noType = tokenType("");
     var delimiterType = tokenType("delimiter");
@@ -12,23 +13,45 @@
 
     var bo = literalMatcher("\{", delimiterType);
     var bc = literalMatcher("\}", delimiterType);
+    var dot = literalMatcher("\.", delimiterType);
     var namespace = literalMatcher("namespace", keywordType);
 
     var ignore = contexts:get("artus.ignore");
 
-    var nameMatcher = lang:tokenMatcher(nameType, "[\p{Pc}\p{L}\p{M}\p{No}][\p{Pc}\p{L}\p{M}\p{N}]*");
-
-    var namespaceBodyCtx = lang:contextType("artus.namespace.body", lang:arrayListOf(
+    var namespaceBodyCtx = lang:contextType("artus.namespace", lang:arrayListOf(
         lang:contextMatcherPop(bc)
     ));
 
-    var namespaceNameCtx = lang:contextType("artus.namespace.name", lang:arrayListOf(
-        //lang:contextMatcherPush(namespace) //missing
+    var namespaceNameCtx = lang:contextType("artus.namespace.name", lang:arrayListOf(), lang:arrayListOf(ignore));
+
+    var namespaceSwitchCtx = lang:contextType("artus.namespace.switch", lang:arrayListOf(
+        lang:contextMatcherSwitchWith(bo, namespaceBodyCtx, function(token, tokenCtx, newCtx) {
+            var names = tokenCtx.properties["artus.namespace.names"]
+            var ids = newCtx.properties["artus.path.ids"] ?: lang:arrayListOf();
+            ids.addAll(names);
+            newCtx.properties["artus.path.ids"] = ids;
+        }),
+        lang:contextMatcherSwitchWith(dot, namespaceNameCtx, function(token, tokenCtx, newCtx) {
+            newCtx.properties["artus.namespace.names"] = tokenCtx.properties["artus.namespace.names"];
+        })
     ), lang:arrayListOf(ignore));
 
-    var fileBodyCtx = contexts:get("artus.file.body")
+
+    var nameMatcher = matchers:get("artus.name");
+
+    namespaceNameCtx.addMatcher(
+        lang:contextMatcherSwitchWith(nameMatcher, namespaceSwitchCtx, function(token, tokenCtx, newCtx) {
+            var names = tokenCtx.properties["artus.namespace.names"] ?: lang:arrayListOf();
+            names.add(token.text);
+            newCtx.properties["artus.namespace.names"] = names;
+        })
+    );
+
+    var fileBodyCtx = contexts:get("artus.file.body");
 
     fileBodyCtx.addMatcher(lang:contextMatcherPush(namespace, namespaceNameCtx));
 
     namespaceBodyCtx.addParent(fileBodyCtx);
+    
+    contexts:put("artus.namespace", namespaceBodyCtx);
 ###
