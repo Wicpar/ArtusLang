@@ -584,7 +584,7 @@ class NDefTree {
  */
 class NDefPath(val path: List<Any>, val features: List<Any> = listOf(), val filters: List<Any> = listOf())
 
-class LayeredIterable<T>(val base: Iterable<T>, val depth: Iterable<Iterable<T>>): Iterable<T> {
+class LayeredIterable<out T>(val base: Iterable<T>, val depth: Iterable<Iterable<T>>): Iterable<T> {
 
     override fun iterator(): Iterator<T> {
         return Iterators.concat(base.iterator(), Iterators.concat(depth.map { it.iterator() }.iterator()))
