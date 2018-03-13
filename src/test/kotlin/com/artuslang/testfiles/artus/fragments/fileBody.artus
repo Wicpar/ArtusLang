@@ -4,7 +4,10 @@
     lang:import(root + "utils/typesUtil.artus");
     lang:import("ignore.artus");
 
+    var ignore = contexts:get("artus.ignore");
     var fileBodyCtx = lang:contextType("artus.file.body", lang:arrayListOf(), lang:arrayListOf(ignore));
+
     contexts:put("artus.file.body", fileBodyCtx);
+
     context.type.addParent(fileBodyCtx);
 ###
