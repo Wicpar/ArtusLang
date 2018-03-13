@@ -55,7 +55,8 @@ class BaseLang {
     }
 }
 
-internal class Test {
+internal object Test {
+
     @Test
     fun test() {
         //preheat jexl
