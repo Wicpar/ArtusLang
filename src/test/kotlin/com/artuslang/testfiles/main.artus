@@ -1,15 +1,17 @@
 # // import language descriptor files that will describe how to dynamically build files, the path is relative to the current file's folder
 # // actual start of program is in tests.kt, it is run with
-# lang:import("common/commonTree.artus");
-# lang:import("artus/namespace.artus");
+
 # // comments here are invalid since they are imported after, this is a comment inside the script language
 # lang:import("artus/lineComment.artus");
 
 // this is a line Comment as imported, it is handled like spaces between tokens
 
-namespace
-// comments can go anywhere even between tokens, just like spaces
-myNamespace.with.full.UTF8.support.éèçàð.私はガラスを食べられます_それは私を傷つけません.ᚠᛇᚻ_ᛒᛦᚦ_ᚠᚱᚩᚠᚢᚱ_ᚠᛁᚱᚪ_ᚷᛖᚻᚹᛦᛚᚳᚢᛗ.ვეპხის_ტყაოსანი_შოთა_რუსთაველი {
+# lang:import("artus/namespace.artus");
+
+// this is a namespace, it provides a local tracker inside the context to allow relative navigation
+
+namespace myNamespace.with.full.UTF8  .  support.éèçàð.私はガラスを食べられます_それは私を傷つけません.ᚠᛇᚻ_ᛒᛦᚦ_ᚠᚱᚩᚠᚢᚱ_ᚠᛁᚱᚪ_ᚷᛖᚻᚹᛦᛚᚳᚢᛗ.
+ვეპხის_ტყაოსანი_შოთა_რუსთაველი {
 
 }
 
