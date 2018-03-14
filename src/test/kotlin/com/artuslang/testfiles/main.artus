@@ -1,3 +1,5 @@
+# // import language descriptor files that will describe how to dynamically build files, the path is relative to the current file's folder
+# // actual start of program is in tests.kt, it is run with
 # lang:import("common/commonTree.artus");
 # lang:import("artus/namespace.artus");
 # // comments here are invalid since they are imported after, this is a comment inside the script language
