@@ -1,9 +1,20 @@
 # lang:import("common/commonTree.artus");
 # lang:import("artus/namespace.artus");
+# // comments here are invalid since they are imported after, this is a comment inside the script language
 # lang:import("artus/lineComment.artus");
 
-// qfsdfqsdsqfsdfsdfdqf fdqdfdsf dqsf df qsdfgdsgqdsfds
+// this is a line Comment as imported, it is handled like spaces between tokens
 
-namespace a {
+namespace
+// comments can go anywhere even between tokens, just like spaces
+myNamespace.with.full.UTF8.support.éèçàð.私はガラスを食べられます_それは私を傷つけません.ᚠᛇᚻ_ᛒᛦᚦ_ᚠᚱᚩᚠᚢᚱ_ᚠᛁᚱᚪ_ᚷᛖᚻᚹᛦᛚᚳᚢᛗ.ვეპხის_ტყაოსანი_შოთა_რუსთაველი {
+
+}
+
+# lang:import("artus/multiLineComment.artus");
+
+/* multiline comments now also exist, and are usable like the single spaces ones but are inlinable */
+
+namespace /* with comment */ name {
 
 }
