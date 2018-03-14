@@ -1,5 +1,8 @@
 # lang:import("common/commonTree.artus");
 # lang:import("artus/namespace.artus");
+# lang:import("artus/lineComment.artus");
+
+// qfsdfqsdsqfsdfsdfdqf fdqdfdsf dqsf df qsdfgdsgqdsfds
 
 namespace a {
 
