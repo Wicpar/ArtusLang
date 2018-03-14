@@ -30,6 +30,10 @@
             var ids = newCtx.properties["artus.path.ids"] ?: lang:arrayListOf();
             ids.addAll(names);
             newCtx.properties["artus.path.ids"] = ids;
+            //debug output
+            if (this:get("debug") == true) {
+                log:println("artus.namespace: " + ids);
+            }
         }),
         lang:contextMatcherSwitchWith(dot, namespaceNameCtx, function(token, tokenCtx, newCtx) {
             newCtx.properties["artus.namespace.names"] = tokenCtx.properties["artus.namespace.names"];

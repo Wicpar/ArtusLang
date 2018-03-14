@@ -9,7 +9,7 @@
     var ignore = contexts:get("artus.ignore");
 
     var type = tokenType("comment");
-    var matcher = lang:tokenMatcher(type, "/\*.*?(?:\*/|\\z)");
+    var matcher = lang:tokenMatcher(type, "/\\*.*?(?:\\*/|\\z)");
     // \\z for end of input, since we don't want odd errors
     ignore.addMatcher(lang:contextMatcherNop(matcher));
 ###

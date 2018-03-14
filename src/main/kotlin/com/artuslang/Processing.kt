@@ -390,7 +390,7 @@ open class StringArtusReader(str: String, override val name: String) : ArtusRead
                         contextMatcher.event(token, ctx)
                     }
                 }()
-            }) ?: throw RuntimeException("no Context in source $name at $offset: \"${data.subSequence(0, min(20, data.lastIndex))}...\"")
+            }) ?: throw RuntimeException("no Context in source $name at $offset: \"${data.subSequence(0, min(80, data.lastIndex))}...\"")
         }
         return ctx
     }

@@ -43,6 +43,8 @@ class BaseLang {
                 ?: context
     })
 
+    val test = TokenMatcher(sscriptTagType, "/\\*.*?(?:\\*/|\\z)")
+
     val baseContextType = ContextType("base", arrayListOf(multilineMatcher, directiveMatcher), arrayListOf(spaceableContext))
 
     init {
@@ -67,7 +69,9 @@ fun main(args: Array<String>) {
     //preheat jexl
     BaseLang().apply { StringArtusReader("###;###", "").build(Context(baseContextType)) }
     //real thing
-    println("${measureNanoTime {
-        BaseLang().apply { utils.include("src/test/kotlin/com/artuslang/testfiles/main.artus", Context(baseContextType)) }
-    } / 1000000f} ms")
+    BaseLang().apply {
+        println("${measureNanoTime {
+            utils.include("src/test/kotlin/com/artuslang/testfiles/main.artus", Context(baseContextType))
+        } / 1000000f} ms")
+    }
 }

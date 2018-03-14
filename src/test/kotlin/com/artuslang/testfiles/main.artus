@@ -1,3 +1,5 @@
+#lang:import("utils/debug.artus"); // enable debug output
+
 # // import language descriptor files that will describe how to dynamically build files, the path is relative to the current file's folder
 # // actual start of program is in tests.kt, it is run with
 
@@ -13,6 +15,7 @@
 namespace myNamespace.with.full.UTF8  .  support.éèçàð.私はガラスを食べられます_それは私を傷つけません.ᚠᛇᚻ_ᛒᛦᚦ_ᚠᚱᚩᚠᚢᚱ_ᚠᛁᚱᚪ_ᚷᛖᚻᚹᛦᛚᚳᚢᛗ.
 ვეპხის_ტყაოსანი_შოთა_რუსთაველი {
 
+    namespace inside {}
 }
 
 # lang:import("artus/multiLineComment.artus");
@@ -24,4 +27,5 @@ namespace /* with comment */ name {}
 namespace /* eof multiline comment, bad practice but implemented for behavioral reasons.
 the context returned will expect completion of the namespace,
 i have left this artifact as it is not my job to prevent the dev to shoot itself in his foot, and some architectures may benefit from it, in fragments combined with lang:include for instance
+# scripts are commentable
 
