@@ -21,6 +21,7 @@ import org.apache.commons.jexl3.JexlBuilder
 import org.apache.commons.jexl3.JexlContext
 import org.apache.commons.jexl3.internal.Closure
 import org.apache.commons.jexl3.introspection.JexlSandbox
+import org.apache.commons.lang.StringEscapeUtils
 import org.intellij.lang.annotations.Language
 import org.reflections.Reflections
 import org.reflections.scanners.SubTypesScanner
@@ -247,11 +248,10 @@ class LangUtils(private val ctx: ScriptContext) {
         if (!file.canonicalPath.contains(dir.canonicalPath + File.separator)) {
             throw RuntimeException("illegal file access, only children of local folder allowed")
         }
-        file.mkdirs()
-        buffer.reset()
         val arr = ByteArray(buffer.remaining())
         buffer.get(arr)
-        buffer.clear()
+        file.parentFile?.mkdirs()
+        file.createNewFile()
         file.writeBytes(arr)
     }
 
@@ -349,6 +349,10 @@ class LangUtils(private val ctx: ScriptContext) {
     fun mapOf(vararg any: Pair<Any?, Any?>) = mapOf<Any?, Any?>(*any)
     fun hashMapOf(vararg any: Pair<Any?, Any?>) = hashMapOf<Any?, Any?>(*any)
     fun pairOf(a: Any?, b: Any?) = Pair(a, b)
+
+    fun unescape(str: String): String {
+        return StringEscapeUtils.unescapeJava(str)
+    }
 }
 
 object Log {

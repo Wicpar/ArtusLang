@@ -16,6 +16,7 @@
 
 package com.artuslang
 
+import org.apache.commons.jexl3.internal.Closure
 import org.junit.jupiter.api.Test
 import kotlin.system.measureNanoTime
 
@@ -67,11 +68,15 @@ internal object Test {
 
 fun main(args: Array<String>) {
     //preheat jexl
-    BaseLang().apply { StringArtusReader("###;###", "").build(Context(baseContextType)) }
+    BaseLang().apply { StringArtusReader("#;", "").build(Context(baseContextType)) }
     //real thing
     BaseLang().apply {
         println("${measureNanoTime {
+            val closures = ArrayList<Closure>()
+            baseCtx.put("onFinished", closures)
             utils.include("src/test/kotlin/com/artuslang/testfiles/main.artus", Context(baseContextType))
+            baseCtx.put("onFinished", null)
+            closures.forEach { it.execute(baseCtx) }
         } / 1000000f} ms")
     }
 }

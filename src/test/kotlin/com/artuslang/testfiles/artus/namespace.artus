@@ -6,10 +6,8 @@
     lang:import("fragments/fileBody.artus");
     lang:import("matchers/name.artus");
 
-    var noType = tokenType("");
     var delimiterType = tokenType("delimiter");
     var keywordType = tokenType("keyword");
-    var nameType = tokenType("name");
 
     var bo = literalMatcher("\{", delimiterType);
     var bc = literalMatcher("\}", delimiterType);
