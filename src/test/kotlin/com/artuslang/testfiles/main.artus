@@ -1,6 +1,39 @@
-# lang:import("common/commonTree.artus");
+#lang:import("utils/debug.artus"); // enable debug output
+
+# // import language descriptor files that will describe how to dynamically build files, the path is relative to the current file's folder
+# // actual start of program is in tests.kt, it is run with
+
+# // comments here are invalid since they are imported after, this is a comment inside the script language
+# lang:import("artus/lineComment.artus");
+
+// this is a line Comment as imported, it is handled like spaces between tokens
+
 # lang:import("artus/namespace.artus");
 
-namespace com.qwertyuiopasdfghjklzxcvbnm.汉语.漢語.العَرَبِيَّة.русский_язык {
+// this is a namespace, it provides a local tracker inside the context to allow relative navigation
 
+namespace myNamespace.with.full.UTF8  .  support.éèçàð.私はガラスを食べられます_それは私を傷つけません.ᚠᛇᚻ_ᛒᛦᚦ_ᚠᚱᚩᚠᚢᚱ_ᚠᛁᚱᚪ_ᚷᛖᚻᚹᛦᛚᚳᚢᛗ.
+ვეპხის_ტყაოსანი_შოთა_რუსთაველი {
+
+    namespace inside {}
 }
+
+# lang:import("artus/multiLineComment.artus");
+
+/* multiline comments now also exist, and are usable like the single spaces ones but are inlinable */
+
+namespace /* with comment */ name {}
+
+# lang:import("artus/fileGen.artus");
+
+//filegen to generate a file with generated data
+
+filegen "out/tests/a.out" {
+    // nothing available yet
+}
+
+namespace /* eof multiline comment, bad practice but implemented for behavioral reasons.
+the context returned will expect completion of the namespace,
+i have left this artifact as it is not my job to prevent the dev to shoot itself in his foot, and some architectures may benefit from it, in fragments combined with lang:include for instance
+# scripts are commentable
+

@@ -16,10 +16,12 @@
 
 package com.artuslang
 
+import com.google.common.collect.Iterators
 import org.apache.commons.jexl3.JexlBuilder
 import org.apache.commons.jexl3.JexlContext
 import org.apache.commons.jexl3.internal.Closure
 import org.apache.commons.jexl3.introspection.JexlSandbox
+import org.apache.commons.lang.StringEscapeUtils
 import org.intellij.lang.annotations.Language
 import org.reflections.Reflections
 import org.reflections.scanners.SubTypesScanner
@@ -57,13 +59,22 @@ data class Token(val location: ArtusLocation, val text: String, val type: TokenT
 
 data class TokenMatcher(val type: TokenType, @Language("RegExp") val pattern: String, val group: Int = 1) {
     val regex = Regex("\\A($pattern)", setOf(RegexOption.MULTILINE, RegexOption.DOT_MATCHES_ALL, RegexOption.UNIX_LINES))
+    override fun toString(): String {
+        return "TokenMatcher(type=$type, pattern='$pattern', group=$group)"
+    }
+
 }
 
-class ContextMatcher(val matcher: TokenMatcher, val event: (Token, Context) -> Context)
+class ContextMatcher(val matcher: TokenMatcher, val event: (Token, Context) -> Context) {
+    override fun toString(): String {
+        return "ContextMatcher(matcher=$matcher)"
+    }
+}
 
 class ContextType(name: String, private val matchers: ArrayList<ContextMatcher>, private val parents: ArrayList<ContextType> = arrayListOf()) : NamedType(name) {
 
-    private val stack: ArrayList<ContextMatcher> = ArrayList(matchers + parents.map { it.stack }.flatten())
+    private val parentStacks: ArrayList<LayeredIterable<ContextMatcher>> = ArrayList(parents.map { it.stack })
+    private val stack: LayeredIterable<ContextMatcher> = LayeredIterable(matchers, parentStacks)
     private val classTypes: HashSet<ContextType> = HashSet(parents.map { it.classTypes }.flatten() + this)
     private val stringTypes: HashSet<String> = HashSet(classTypes.map { it.name })
 
@@ -71,8 +82,7 @@ class ContextType(name: String, private val matchers: ArrayList<ContextMatcher>,
     fun addParent(ctx: ContextType, idx: Int = 0) {
         val i = if (idx < 0) idx + matchers.size + 1 else idx
         parents.add(i, ctx)
-        stack.clear()
-        stack.addAll(matchers + parents.map { it.stack }.flatten())
+        parentStacks.add(i, ctx.stack)
         classTypes.addAll(ctx.classTypes)
         stringTypes.addAll(ctx.stringTypes)
     }
@@ -81,10 +91,9 @@ class ContextType(name: String, private val matchers: ArrayList<ContextMatcher>,
     fun addMatcher(ctx: ContextMatcher, idx: Int = 0) {
         val i = if (idx < 0) idx + matchers.size + 1 else idx
         matchers.add(i, ctx)
-        stack.add(i, ctx)
     }
 
-    fun getStack(): List<ContextMatcher> {
+    fun getStack(): Iterable<ContextMatcher> {
         return stack
     }
 
@@ -95,6 +104,11 @@ class ContextType(name: String, private val matchers: ArrayList<ContextMatcher>,
     fun isType(contextType: String): Boolean {
         return stringTypes.contains(contextType)
     }
+
+    override fun toString(): String {
+        return "ContextType(matchers=$matchers, parents=$parents)"
+    }
+
 }
 
 class Context(val type: ContextType, val parent: Context? = null) {
@@ -142,6 +156,10 @@ class Context(val type: ContextType, val parent: Context? = null) {
                 parent = parent.parent
         }
         return parent
+    }
+
+    override fun toString(): String {
+        return "Context(type=$type, parent=$parent, children=$children, properties=$properties)"
     }
 }
 
@@ -230,11 +248,10 @@ class LangUtils(private val ctx: ScriptContext) {
         if (!file.canonicalPath.contains(dir.canonicalPath + File.separator)) {
             throw RuntimeException("illegal file access, only children of local folder allowed")
         }
-        file.mkdirs()
-        buffer.reset()
         val arr = ByteArray(buffer.remaining())
         buffer.get(arr)
-        buffer.clear()
+        file.parentFile?.mkdirs()
+        file.createNewFile()
         file.writeBytes(arr)
     }
 
@@ -332,6 +349,10 @@ class LangUtils(private val ctx: ScriptContext) {
     fun mapOf(vararg any: Pair<Any?, Any?>) = mapOf<Any?, Any?>(*any)
     fun hashMapOf(vararg any: Pair<Any?, Any?>) = hashMapOf<Any?, Any?>(*any)
     fun pairOf(a: Any?, b: Any?) = Pair(a, b)
+
+    fun unescape(str: String): String {
+        return StringEscapeUtils.unescapeJava(str)
+    }
 }
 
 object Log {
@@ -360,7 +381,8 @@ open class StringArtusReader(str: String, override val name: String) : ArtusRead
     override fun build(ctx: Context): Context {
         var ctx: Context = ctx
         while (data.isNotEmpty()) {
-            ctx = ctx.type.getStack().toList().fold(null as Context?, { acc, contextMatcher ->
+            val stack = ctx.type.getStack().toList()
+            ctx = stack.fold(null as Context?, { acc, contextMatcher ->
                 acc ?: {
                     val matched = contextMatcher.matcher.regex.find(data)
                     matched?.groups?.get(contextMatcher.matcher.group)?.let {
@@ -372,7 +394,7 @@ open class StringArtusReader(str: String, override val name: String) : ArtusRead
                         contextMatcher.event(token, ctx)
                     }
                 }()
-            }) ?: throw RuntimeException("no Context in source $name at $offset: \"${data.subSequence(0, min(20, data.lastIndex))}...\"")
+            }) ?: throw RuntimeException("no Context in source $name at $offset: \"${data.subSequence(0, min(80, data.lastIndex))}...\"")
         }
         return ctx
     }
@@ -565,3 +587,11 @@ class NDefTree {
  * [filters] the path will not follow any node that is missing a filter, if features are not discernable, it will take the one with closest filter match
  */
 class NDefPath(val path: List<Any>, val features: List<Any> = listOf(), val filters: List<Any> = listOf())
+
+class LayeredIterable<out T>(val base: Iterable<T>, val depth: Iterable<Iterable<T>>): Iterable<T> {
+
+    override fun iterator(): Iterator<T> {
+        return Iterators.concat(base.iterator(), Iterators.concat(depth.map { it.iterator() }.iterator()))
+    }
+
+}

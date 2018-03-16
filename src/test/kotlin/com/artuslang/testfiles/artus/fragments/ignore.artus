@@ -1,0 +1,12 @@
+###
+/*
+    this fragment is meant to provide an interface for ignored components to exist between tokens,
+    like spaces, comments, and other components ignored by the system
+*/
+    var root = "../../";
+    lang:import(root + "common/spaceable.artus");
+    lang:import(root + "utils/contextUtil.artus");
+    lang:import(root + "utils/typesUtil.artus");
+
+    contexts:put("artus.ignore", lang:contextType("artus.ignore", lang:arrayListOf(), lang:arrayListOf(contexts:get("spaceable"))));
+###

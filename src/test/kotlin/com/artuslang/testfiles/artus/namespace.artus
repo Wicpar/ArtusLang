@@ -2,28 +2,25 @@
     lang:import("../utils/typesUtil.artus");
     lang:import("../utils/literalMatcher.artus");
     lang:import("../utils/contextUtil.artus");
-    lang:import("../common/commonTree.artus");
-    lang:import("../common/spaceable.artus");
+    lang:import("fragments/ignore.artus");
+    lang:import("fragments/fileBody.artus");
+    lang:import("matchers/name.artus");
 
-    var noType = tokenType("");
     var delimiterType = tokenType("delimiter");
     var keywordType = tokenType("keyword");
-    var nameType = tokenType("name");
 
     var bo = literalMatcher("\{", delimiterType);
     var bc = literalMatcher("\}", delimiterType);
     var dot = literalMatcher("\.", delimiterType);
     var namespace = literalMatcher("namespace", keywordType);
 
-    var spaceable = contexts:get("spaceable");
-
-    var nameMatcher = lang:tokenMatcher(nameType, "[\p{Pc}\p{L}\p{M}\p{No}][\p{Pc}\p{L}\p{M}\p{N}]*");
+    var ignore = contexts:get("artus.ignore");
 
     var namespaceBodyCtx = lang:contextType("artus.namespace", lang:arrayListOf(
         lang:contextMatcherPop(bc)
     ));
 
-    var namespaceNameCtx = lang:contextType("artus.namespace.name", lang:arrayListOf(), lang:arrayListOf(spaceable));
+    var namespaceNameCtx = lang:contextType("artus.namespace.name", lang:arrayListOf(), lang:arrayListOf(ignore));
 
     var namespaceSwitchCtx = lang:contextType("artus.namespace.switch", lang:arrayListOf(
         lang:contextMatcherSwitchWith(bo, namespaceBodyCtx, function(token, tokenCtx, newCtx) {
@@ -31,11 +28,18 @@
             var ids = newCtx.properties["artus.path.ids"] ?: lang:arrayListOf();
             ids.addAll(names);
             newCtx.properties["artus.path.ids"] = ids;
+            //debug output
+            if (this:get("debug") == true) {
+                log:println("artus.namespace: " + ids);
+            }
         }),
         lang:contextMatcherSwitchWith(dot, namespaceNameCtx, function(token, tokenCtx, newCtx) {
             newCtx.properties["artus.namespace.names"] = tokenCtx.properties["artus.namespace.names"];
         })
-    ), lang:arrayListOf(spaceable));
+    ), lang:arrayListOf(ignore));
+
+
+    var nameMatcher = matchers:get("artus.name");
 
     namespaceNameCtx.addMatcher(
         lang:contextMatcherSwitchWith(nameMatcher, namespaceSwitchCtx, function(token, tokenCtx, newCtx) {
@@ -45,11 +49,11 @@
         })
     );
 
-    var fileBodyCtx = lang:contextType("artus.file.body", lang:arrayListOf(
-        lang:contextMatcherPush(namespace, namespaceNameCtx)
-    ), lang:arrayListOf(spaceable));
+    var fileBodyCtx = contexts:get("artus.file.body");
+
+    fileBodyCtx.addMatcher(lang:contextMatcherPush(namespace, namespaceNameCtx));
 
     namespaceBodyCtx.addParent(fileBodyCtx);
-
-    context.type.addParent(fileBodyCtx);
+    
+    contexts:put("artus.namespace", namespaceBodyCtx);
 ###

@@ -1,0 +1,10 @@
+###
+    var root = "../../";
+    lang:import(root + "utils/matcherUtil.artus");
+    lang:import(root + "utils/typesUtil.artus");
+
+    var nameType = tokenType("name");
+    var nameMatcher = lang:tokenMatcher(nameType, "[\p{Pc}\p{L}\p{M}\p{No}][\p{Pc}\p{L}\p{M}\p{N}]*");
+
+    matchers:put("artus.name", nameMatcher);
+###

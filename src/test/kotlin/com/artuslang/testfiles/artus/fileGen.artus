@@ -1,0 +1,56 @@
+###
+    lang:import("../utils/typesUtil.artus");
+    lang:import("../utils/literalMatcher.artus");
+    lang:import("../utils/contextUtil.artus");
+    lang:import("fragments/ignore.artus");
+    lang:import("fragments/fileBody.artus");
+    lang:import("fragments/codeBody.artus");
+    lang:import("matchers/string.artus");
+
+    var delimiterType = tokenType("delimiter");
+    var keywordType = tokenType("keyword");
+
+    var bo = literalMatcher("\{", delimiterType);
+    var bc = literalMatcher("\}", delimiterType);
+    var filegen = literalMatcher("filegen", keywordType);
+
+    var ignore = contexts:get("artus.ignore");
+
+    var stringMatcher = matchers:get("artus.string");
+
+    var codeBodyCtx = contexts:get("artus.code.body");
+
+    var filegenBodyCtx = lang:contextType("artus.filegen", lang:arrayListOf(
+        lang:contextMatcherPopWith(bc, function (token, context) {
+            var builders = context.properties["artus.code.builder"] ?: lang:arrayListOf();
+            var file = context.properties["artus.filegen.path"];
+            onFinished.add(function () {
+                var data = lang:data();
+                for (builder: builders) {
+                    builder(data);
+                }
+                lang:writeFile(file, data.toByteBuffer());
+            });
+            //debug output
+            if (this:get("debug") == true) {
+                log:println("artus.filegen: " + file);
+            }
+        })
+    ), lang:arrayListOf(codeBodyCtx));
+
+    var filegenSwitchCtx = lang:contextType("artus.filegen.switch", lang:arrayListOf(
+        lang:contextMatcherSwitchWith(bo, filegenBodyCtx, function(token, tokenCtx, newCtx) {
+            newCtx.properties["artus.filegen.path"] = tokenCtx.properties["artus.filegen.path"];
+        })
+    ), lang:arrayListOf(ignore));
+
+    var filegenPathCtx = lang:contextType("artus.filegen.path", lang:arrayListOf(
+        lang:contextMatcherSwitchWith(stringMatcher, filegenSwitchCtx, function(token, tokenCtx, newCtx) {
+            newCtx.properties["artus.filegen.path"] = lang:unescape(token.text.substring(1, size(token.text) - 1));
+        })
+    ), lang:arrayListOf(ignore));
+
+    var fileBodyCtx = contexts:get("artus.file.body");
+    fileBodyCtx.addMatcher(lang:contextMatcherPush(filegen, filegenPathCtx));
+
+###

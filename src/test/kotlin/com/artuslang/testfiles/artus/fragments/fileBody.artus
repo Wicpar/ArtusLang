@@ -1,0 +1,17 @@
+###
+/*
+    this is the base fragment where all functionality meant to be accessible in the general scope and up will go
+    namespaces inherit functionality, so should other components with similar function
+*/
+    var root = "../../";
+    lang:import(root + "utils/contextUtil.artus");
+    lang:import(root + "utils/typesUtil.artus");
+    lang:import("ignore.artus");
+
+    var ignore = contexts:get("artus.ignore");
+    var fileBodyCtx = lang:contextType("artus.file.body", lang:arrayListOf(), lang:arrayListOf(ignore));
+
+    contexts:put("artus.file.body", fileBodyCtx);
+
+    context.type.addParent(fileBodyCtx);
+###

@@ -42,7 +42,7 @@ dependencies {
 
     testCompile("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
-    testCompile group: 'commons-lang', name: 'commons-lang', version: '2.6'
+    compile group: 'commons-lang', name: 'commons-lang', version: '2.6'
 }
 
 compileKotlin {

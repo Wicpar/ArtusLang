@@ -1,0 +1,15 @@
+###
+    var root = "../";
+    lang:import(root + "utils/typesUtil.artus");
+    lang:import(root + "utils/contextUtil.artus");
+    lang:import("fragments/ignore.artus");
+    //necessary for standalone use
+    lang:import("fragments/fileBody.artus");
+
+    var ignore = contexts:get("artus.ignore");
+
+    var type = tokenType("comment");
+    var matcher = lang:tokenMatcher(type, "/\\*.*?(?:\\*/|\\z)");
+    // \\z for end of input, since we don't want odd errors
+    ignore.addMatcher(lang:contextMatcherNop(matcher));
+###
