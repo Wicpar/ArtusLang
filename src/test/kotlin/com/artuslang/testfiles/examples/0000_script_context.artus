@@ -1,0 +1,11 @@
+# // this # describes a single line script context
+###
+    // this ### ... ### describes a multiline script context
+###
+###
+    // the scripting language is JEXL 3, chosen for it's convenience and sandboxing abilities.
+    // the core of the scripting language is described by the ScriptContext class, and handled according to the JEXL context
+    // the script context is handled by the initializer and can be made to be shared or not between executions.
+    // undefined behavior can ensue
+    // examples can be taken from the language definition files, they are all well thought through to make an efficient coherent whole
+###

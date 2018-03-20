@@ -1,0 +1,20 @@
+###
+    lang:import("../utils/typesUtil.artus");
+    lang:import("../utils/literalMatcher.artus");
+    lang:import("../utils/contextUtil.artus");
+    lang:import("fragments/ignore.artus");
+    lang:import("fragments/fileBody.artus");
+    lang:import("matchers/name.artus");
+
+    var delimiterType = tokenType("delimiter");
+    var keywordType = tokenType("keyword");
+
+    var bo = literalMatcher("\{", delimiterType);
+    var bc = literalMatcher("\}", delimiterType);
+
+    var type = literalMatcher("type", keywordType);
+
+    var ignore = contexts:get("artus.ignore");
+
+
+###

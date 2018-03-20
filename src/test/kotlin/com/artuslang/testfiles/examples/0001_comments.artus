@@ -1,0 +1,12 @@
+# // this is an example of the different comments
+# // this is a comment in the script context
+# /* this is a multiline comment in the script context */
+
+# lang:import("../artus/lineComment.artus"); // we import the standard line comment
+// this is a standard line comment, it is handled like a space and can be used in any context extending "ignore"
+
+# lang:import("../artus/multiLineComment.artus"); // we import the multi line comment
+
+/* same as the line comment, but closeable */
+
+/* if not closed, it is closed at the end of file.
