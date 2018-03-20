@@ -5,6 +5,7 @@
     lang:import("fragments/ignore.artus");
     lang:import("fragments/fileBody.artus");
     lang:import("matchers/name.artus");
+    lang:import("fragments/typeTree.artus");
 
     var delimiterType = tokenType("delimiter");
     var keywordType = tokenType("keyword");
@@ -17,4 +18,32 @@
     var ignore = contexts:get("artus.ignore");
 
 
+    var typeBodyCtx = lang:contextType("artus.type", lang:arrayListOf(
+        lang:contextMatcherPop(bc)
+    ), lang:arrayListOf(ignore));
+
+    var typeSwitchCtx = lang:contextType("artus.type.switch", lang:arrayListOf(
+        lang:contextMatcherSwitchWith(bo, typeBodyCtx, function(token, tokenCtx, newCtx) {
+            var name = tokenCtx.properties["artus.type.name"];
+            newCtx.properties["artus.type.object"] = lang:hashMapOf(lang:pair("name", name));
+            var ids = newCtx.properties["artus.path.ids"] ?: lang:arrayListOf();
+            ids.add(name);
+            newCtx.properties["artus.path.ids"] = ids;
+            //debug output
+            if (this:get("debug") == true) {
+                log:println("artus.type: " + name);
+            }
+        })
+    ), lang:arrayListOf(ignore));
+
+    var nameMatcher = matchers:get("artus.name");
+
+    var typePathCtx = lang:contextType("artus.type.path", lang:arrayListOf(
+        lang:contextMatcherSwitchWith(nameMatcher, typeSwitchCtx, function(token, tokenCtx, newCtx) {
+            newCtx.properties["artus.type.name"] = token.text;
+        })
+    ), lang:arrayListOf(ignore));
+
+    var fileBodyCtx = contexts:get("artus.file.body");
+    fileBodyCtx.addMatcher(lang:contextMatcherPush(type, typePathCtx));
 ###

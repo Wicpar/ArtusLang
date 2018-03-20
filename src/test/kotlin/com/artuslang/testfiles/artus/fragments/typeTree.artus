@@ -1,0 +1,3 @@
+###
+    this:put("typeTree", lang:tree());
+###
