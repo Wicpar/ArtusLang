@@ -32,6 +32,10 @@ filegen "out/tests/a.out" {
     // nothing available yet
 }
 
+# lang:import("artus/type.artus");
+
+type type {}
+
 namespace /* eof multiline comment, bad practice but implemented for behavioral reasons.
 the context returned will expect completion of the namespace,
 i have left this artifact as it is not my job to prevent the dev to shoot itself in his foot, and some architectures may benefit from it, in fragments combined with lang:include for instance
