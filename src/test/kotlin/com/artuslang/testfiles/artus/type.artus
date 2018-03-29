@@ -22,17 +22,27 @@
         lang:contextMatcherPop(bc)
     ), lang:arrayListOf(ignore));
 
+    this:registerNamespace("artus_types", lang:hashMapOf());
+
     var typeSwitchCtx = lang:contextType("artus.type.switch", lang:arrayListOf(
         lang:contextMatcherSwitchWith(bo, typeBodyCtx, function(token, tokenCtx, newCtx) {
             var name = tokenCtx.properties["artus.type.name"];
-            newCtx.properties["artus.type.object"] = lang:hashMapOf(lang:pairOf("name", name));
             var ids = newCtx.properties["artus.path.ids"] ?: lang:arrayListOf();
             ids.add(name);
-            newCtx.properties["artus.path.ids"] = ids;
-            //debug output
-            if (this:get("debug") == true) {
-                log:println("artus.type: " + name);
+
+            var map = artus_types:get(ids);
+            if (map == null) {
+                map = lang:hashMapOf();
+                map.put("name", ids);
+                map.put("props", lang:heritableMapOf());
+                artus_types:put(ids, map);
+                //debug output
+                if (this:get("debug") == true) {
+                    log:println("artus.type: " + name);
+                }
             }
+            newCtx.properties["artus.type.object"] = map;
+            newCtx.properties["artus.path.ids"] = ids;
         })
     ), lang:arrayListOf(ignore));
 
@@ -46,4 +56,5 @@
 
     var fileBodyCtx = contexts:get("artus.file.body");
     fileBodyCtx.addMatcher(lang:contextMatcherPush(type, typePathCtx));
+    contexts:put("artus.type", typeBodyCtx);
 ###

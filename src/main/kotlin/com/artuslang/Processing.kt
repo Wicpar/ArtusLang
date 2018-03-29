@@ -349,6 +349,7 @@ class LangUtils(private val ctx: ScriptContext) {
     fun mapOf(vararg any: Pair<Any?, Any?>) = mapOf<Any?, Any?>(*any)
     fun hashMapOf(vararg any: Pair<Any?, Any?>) = hashMapOf<Any?, Any?>(*any)
     fun pairOf(a: Any?, b: Any?) = Pair(a, b)
+    fun heritableMapOf(vararg parents: HeritableMap<Any?, Any?>) = HeritableMap<Any?, Any?>()
 
     fun unescape(str: String): String {
         return StringEscapeUtils.unescapeJava(str)
@@ -594,4 +595,25 @@ class LayeredIterable<out T>(val base: Iterable<T>, val depth: Iterable<Iterable
         return Iterators.concat(base.iterator(), Iterators.concat(depth.map { it.iterator() }.iterator()))
     }
 
+}
+
+class HeritableMap<T, U>(parents: List<HeritableMap<T, U>> = listOf()) {
+    val parents = ArrayList<HeritableMap<T, U>>(parents)
+    private val map = HashMap<T, U>()
+
+    operator fun get(key: T): U? {
+        var value = map[key]
+        if (value == null) {
+            parents.forEach {
+                value = it[key]
+                if (value != null)
+                    return value
+            }
+        }
+        return value
+    }
+
+    fun put(key: T, value: U): U? {
+        return map.put(key, value)
+    }
 }
