@@ -50,16 +50,17 @@
         }
     });
 
+    var typeBuilder = function(token, tokenCtx, newCtx) {
+        var name = tokenCtx.properties["artus.type.name"];
+        var ids = newCtx.properties["artus.path.ids"] ?: lang:arrayListOf();
+        var features = newCtx.properties["artus.path.features"] ?: lang:arrayListOf();
+        var filters = newCtx.properties["artus.path.filters"] ?: lang:arrayListOf();
+        ids.add(name);
+        newCtx.properties["artus.type.object"] = getType(ids, features, filters);
+        newCtx.properties["artus.path.ids"] = ids;
+    }
     var typeSwitchCtx = lang:contextType("artus.type.switch", lang:arrayListOf(
-        lang:contextMatcherSwitchWith(bo, typeBodyCtx, function(token, tokenCtx, newCtx) {
-            var name = tokenCtx.properties["artus.type.name"];
-            var ids = newCtx.properties["artus.path.ids"] ?: lang:arrayListOf();
-            var features = newCtx.properties["artus.path.features"] ?: lang:arrayListOf();
-            var filters = newCtx.properties["artus.path.filters"] ?: lang:arrayListOf();
-            ids.add(name);
-            newCtx.properties["artus.type.object"] = getType(ids, features, filters);
-            newCtx.properties["artus.path.ids"] = ids;
-        })
+        lang:contextMatcherSwitchWith(bo, typeBodyCtx, typeBuilder)
     ), lang:arrayListOf(ignore));
 
     var nameMatcher = matchers:get("artus.name");
