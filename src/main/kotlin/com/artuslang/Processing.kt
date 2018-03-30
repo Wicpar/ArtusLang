@@ -327,8 +327,8 @@ class LangUtils(private val ctx: ScriptContext) {
 
     fun data() = Data()
     fun tree() = NDefTree()
-    fun node(features: Array<Any>, filters: Array<Any>) = NDefTree.NDefNode(features.toHashSet(), filters.toHashSet())
-    fun genNode(features: Array<Any>, filters: Array<Any>, ordinal: Double, couldGen: Closure, gen: Closure) = object : NDefTree.NDefNodeGen(features.toHashSet(), filters.toHashSet(), ordinal) {
+    fun node(features: List<Any>, filters: List<Any>) = NDefTree.NDefNode(features.toHashSet(), filters.toHashSet())
+    fun genNode(features: List<Any>, filters: List<Any>, ordinal: Double, couldGen: Closure, gen: Closure) = object : NDefTree.NDefNodeGen(features.toHashSet(), filters.toHashSet(), ordinal) {
         override fun couldGen(elem: Any, features: List<Any>, filters: List<Any>): Boolean {
             return couldGen.execute(ctx, elem, features, filters) as Boolean? ?: false
         }

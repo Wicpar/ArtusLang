@@ -35,10 +35,14 @@
                 builder(map);
             }
             map.put("name", key);
+
+            var node = typeTree.findNodeOrBuild(lang:pathOf(key, features, filters), {"".class: lang:nodeBuilder(function(val, features, filters) {
+                return lang:node(features, filters);
+            })});
+            node.properties.put("type", map);
+            map.put("node", node);
+
             typemap.put(key, map);
-            typeTree.findNodeOrBuild(lang:pathOf(key, features ?: lang:arrayListOf(), filters ?: lang:arrayListOf()),{"".class: lang:nodeBuilder(function() {
-                return lang:node([], []);
-            })})
             //debug output
             if (this:get("debug") == true) {
                 log:println("artus.type: " + key);
