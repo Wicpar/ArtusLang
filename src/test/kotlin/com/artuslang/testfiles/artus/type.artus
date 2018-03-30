@@ -27,7 +27,7 @@
     }));
 
     var typemap = lang:hashMapOf();
-    this:put("getType", function(key) {
+    this:put("getType", function(key, features, filters) {
         var map = typemap.get(key);
         if (map == null) {
             map = lang:hashMapOf();
@@ -36,6 +36,9 @@
             }
             map.put("name", key);
             typemap.put(key, map);
+            typeTree.findNodeOrBuild(lang:pathOf(key, features ?: lang:arrayListOf(), filters ?: lang:arrayListOf()),{"".class: lang:nodeBuilder(function() {
+                return lang:node([], []);
+            })})
             //debug output
             if (this:get("debug") == true) {
                 log:println("artus.type: " + key);
@@ -47,8 +50,10 @@
         lang:contextMatcherSwitchWith(bo, typeBodyCtx, function(token, tokenCtx, newCtx) {
             var name = tokenCtx.properties["artus.type.name"];
             var ids = newCtx.properties["artus.path.ids"] ?: lang:arrayListOf();
+            var features = newCtx.properties["artus.path.features"] ?: lang:arrayListOf();
+            var filters = newCtx.properties["artus.path.filters"] ?: lang:arrayListOf();
             ids.add(name);
-            newCtx.properties["artus.type.object"] = getType(ids);
+            newCtx.properties["artus.type.object"] = getType(ids, features, filters);
             newCtx.properties["artus.path.ids"] = ids;
         })
     ), lang:arrayListOf(ignore));

@@ -340,6 +340,10 @@ class LangUtils(private val ctx: ScriptContext) {
 
     fun nodeBuilder(fn: Closure): (Any, List<Any>, List<Any>) -> NDefTree.NDefNode? = { a, b, c -> fn.execute(ctx, a, b, c) as NDefTree.NDefNode? }
 
+    @JvmOverloads
+    fun pathOf(path: List<Any>, features: List<Any> = kotlin.collections.listOf(), filters: List<Any> = kotlin.collections.listOf()) = NDefPath(path, features, filters)
+
+
     /**
      * easy constructors for allowed types
      */

@@ -33,8 +33,9 @@ filegen "out/tests/a.out" {
 }
 
 # lang:import("artus/type.artus");
-
-type type {}
+namespace types {
+    type theTypeName {}
+}
 
 namespace /* eof multiline comment, bad practice but implemented for behavioral reasons.
 the context returned will expect completion of the namespace,
