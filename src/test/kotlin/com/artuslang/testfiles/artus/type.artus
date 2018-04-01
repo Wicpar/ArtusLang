@@ -22,12 +22,14 @@
         lang:contextMatcherPop(bc)
     ), lang:arrayListOf(ignore));
 
-    this:put("artus_type_builders", lang:arrayListOf(function(map) {
+    var utils = lanh:hashMapOf();
+    this:registerNamespace("artus_type", utils);
+    utils.put("builders", lang:arrayListOf(function(map) {
         map.put("properties", lang:heritableMapOf());
     }));
 
     var typemap = lang:hashMapOf();
-    this:put("getType", function(key, features, filters) {
+    var getType = function(key, features, filters) {
         var map = typemap.get(key);
         if (map == null) {
             map = lang:hashMapOf();
@@ -48,7 +50,9 @@
                 log:println("artus.type: " + key);
             }
         }
-    });
+        return map;
+    };
+    utils.put("typeGetter", getType);
 
     var typeBuilder = function(token, tokenCtx, newCtx) {
         var name = tokenCtx.properties["artus.type.name"];
@@ -59,6 +63,7 @@
         newCtx.properties["artus.type.object"] = getType(ids, features, filters);
         newCtx.properties["artus.path.ids"] = ids;
     }
+
     var typeSwitchCtx = lang:contextType("artus.type.switch", lang:arrayListOf(
         lang:contextMatcherSwitchWith(bo, typeBodyCtx, typeBuilder)
     ), lang:arrayListOf(ignore));
@@ -74,4 +79,6 @@
     var fileBodyCtx = contexts:get("artus.file.body");
     fileBodyCtx.addMatcher(lang:contextMatcherPush(type, typePathCtx));
     contexts:put("artus.type", typeBodyCtx);
+    contexts:put("artus.type.switch", typeSwitchCtx);
+    contexts:put("artus.type.path", typePathCtx);
 ###

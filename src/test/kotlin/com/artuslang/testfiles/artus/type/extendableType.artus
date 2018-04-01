@@ -1,0 +1,22 @@
+###
+    lang:import("../type.artus");
+
+    var col = literalMatcher(":", delimiterType);
+    var com = literalMatcher(",", delimiterType);
+    var bo = literalMatcher("\{", delimiterType);
+    var dot = literalMatcher("\.", delimiterType);
+
+    var ignore = contexts:get("artus.ignore");
+
+    var typeExtPathCtx = lang:contextType("artus.type.extends.path", lang:arrayListOf(
+        lang:contextMatcherSwitchWith(bo, typeBodyCtx, typeBuilder)
+    ), lang:arrayListOf(ignore));
+
+    var typeExtCtx = lang:contextType("artus.type.extends", lang:arrayListOf(
+        lang:contextMatcherSwitchWith(bo, typeBodyCtx, typeBuilder)
+    ), lang:arrayListOf(ignore));
+
+    var typeSwitchCtx = contexts:get("artus.type.switch");
+    typeSwitchCtx.addMatcher(lang:contextMatcherSwitchWith(col, typeExtCtx, function(token, tokenCtx, newCtx) {
+    }));
+###
