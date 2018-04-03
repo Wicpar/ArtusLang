@@ -1,0 +1,6 @@
+###
+/*
+    a procedure is like a C macro in utility, but is not based on the syntax, but on an inner script
+    procedures are useful at generating regular and regulated data patterns, like a file format
+*/
+###
