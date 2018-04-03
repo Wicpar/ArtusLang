@@ -4,7 +4,7 @@
     lang:import("../utils/contextUtil.artus");
     lang:import("fragments/ignore.artus");
     lang:import("fragments/fileBody.artus");
-    lang:import("fragments/codeBody.artus");
+    lang:import("fragments/dataBody.artus");
     lang:import("matchers/string.artus");
 
     var delimiterType = tokenType("delimiter");
@@ -18,11 +18,11 @@
 
     var stringMatcher = matchers:get("artus.string");
 
-    var codeBodyCtx = contexts:get("artus.code.body");
+    var dataBodyCtx = contexts:get("artus.data.body");
 
     var filegenBodyCtx = lang:contextType("artus.filegen", lang:arrayListOf(
         lang:contextMatcherPopWith(bc, function (token, context) {
-            var builders = context.properties["artus.code.builder"] ?: lang:arrayListOf();
+            var builders = context.properties["artus.data.builder"] ?: lang:arrayListOf();
             var file = context.properties["artus.filegen.path"];
             onFinished.add(function () {
                 var data = lang:data();
@@ -36,7 +36,7 @@
                 log:println("artus.filegen: " + file);
             }
         })
-    ), lang:arrayListOf(codeBodyCtx));
+    ), lang:arrayListOf(dataBodyCtx));
 
     var filegenSwitchCtx = lang:contextType("artus.filegen.switch", lang:arrayListOf(
         lang:contextMatcherSwitchWith(bo, filegenBodyCtx, function(token, tokenCtx, newCtx) {
