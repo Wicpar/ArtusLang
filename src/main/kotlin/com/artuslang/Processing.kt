@@ -367,6 +367,10 @@ class LangUtils(private val ctx: ScriptContext) {
     fun unescape(str: String): String {
         return StringEscapeUtils.unescapeJava(str)
     }
+
+    fun `is`(a: Any?, b: Any?): Boolean {
+        return a?.javaClass == b?.javaClass
+    }
 }
 
 object Log {

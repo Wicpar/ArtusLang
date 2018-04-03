@@ -16,12 +16,17 @@
     var builder = function(prefix, exitMatchers) {
         var nameSuiteCtx = lang:contextType(prefix + ".nameSuite", lang:arrayListOf(), lang:arrayListOf(ignore));
 
+        var dotMatcher = lang:contextMatcherSwitch(dot, nameSuiteCtx);
         var nameSuiteSwitchCtx = lang:contextType(prefix + ".switch", lang:arrayListOf(
-            lang:contextMatcherSwitch(dot, nameSuiteCtx)
+            dotMatcher
         ), lang:arrayListOf(ignore));
 
         for (matcher: exitMatchers) {
-            nameSuiteSwitchCtx.addMatcher(matcher);
+            if (lang:is(matcher, function(){})) {
+                nameSuiteSwitchCtx.addMatcher(matcher(nameSuiteCtx, nameSuiteSwitchCtx));
+            } else {
+                nameSuiteSwitchCtx.addMatcher(matcher);
+            }
         }
 
         nameSuiteCtx.addMatcher(

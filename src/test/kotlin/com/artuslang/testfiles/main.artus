@@ -18,12 +18,6 @@ namespace myNamespace.with.full.UTF8  .  support.éèçàð.私はガラスを�
     namespace inside {}
 }
 
-namespace myNamespace.with.full.UTF8  .  support.éèçàð.私はガラスを食べられます_それは私を傷つけません.ᚠᛇᚻ_ᛒᛦᚦ_ᚠᚱᚩᚠᚢᚱ_ᚠᛁᚱᚪ_ᚷᛖᚻᚹᛦᛚᚳᚢᛗ.
-ვეპხის_ტყაოსანი_შოთა_რუსთაველი {
-
-    namespace inside {}
-}
-
 # lang:import("artus/multiLineComment.artus");
 
 /* multiline comments now also exist, and are usable like the single spaces ones but are inlinable */
@@ -43,7 +37,7 @@ filegen "out/tests/a.out" {
 
 namespace types {
     type theTypeName {}
-    type someOtherType : inheritThisOne {}
+    type someOtherType : inheritThisOne, and.that.one {}
 }
 
 namespace /* eof multiline comment, bad practice but implemented for behavioral reasons.

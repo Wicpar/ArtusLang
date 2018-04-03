@@ -27,17 +27,16 @@
             parents.add(tokenCtx.properties["artus.suite.ids"]);
             tokenCtx.properties["artus.suite.ids"] = null;
             type["parents"].addAll(parents);
-        }, false)
+        }, false),
+        function(context, ignores) {
+            return lang:contextMatcherSwitchWith(com, context, function(token, tokenCtx, newCtx) {
+                var parents = tokenCtx.properties["artus.type.parents"] ?: lang:arrayListOf();
+                parents.add(tokenCtx.properties["artus.suite.ids"]);
+                tokenCtx.properties["artus.suite.ids"] = null;
+                newCtx.properties["artus.type.parents"] = parents;
+            });
+        }
     ));
-
-    typeExtCtx.addMatcher(
-        lang:contextMatcherSwitchWith(com, typeExtCtx, function(token, tokenCtx, newCtx) {
-            var parents = tokenCtx.properties["artus.type.parents"] ?: lang:arrayListOf();
-            parents.add(tokenCtx.properties["artus.suite.ids"]);
-            tokenCtx.properties["artus.suite.ids"] = null;
-            newCtx.properties["artus.type.parents"] = parents;
-        })
-    );
 
     var typeSwitchCtx = contexts:get("artus.type.switch");
     typeSwitchCtx.addMatcher(lang:contextMatcherSwitch(col, typeExtCtx));
