@@ -1,0 +1,39 @@
+###
+    var root = "../../";
+    lang:import(root + "utils/typesUtil.artus");
+    lang:import(root + "utils/literalMatcher.artus");
+    lang:import(root + "utils/builderUtil.artus");
+    lang:import("ignore.artus");
+    lang:import("../matchers/name.artus");
+
+    var delimiterType = tokenType("delimiter");
+
+    var dot = literalMatcher("\.", delimiterType);
+    var nameMatcher = matchers:get("artus.name");
+
+    var ignore = contexts:get("artus.ignore");
+
+    var builder = function(prefix, exitMatchers) {
+        var nameSuiteCtx = lang:contextType(prefix + ".nameSuite", lang:arrayListOf(), lang:arrayListOf(ignore));
+
+        var nameSuiteSwitchCtx = lang:contextType(prefix + ".switch", lang:arrayListOf(
+            lang:contextMatcherSwitch(dot, nameSuiteCtx)
+        ), lang:arrayListOf(ignore));
+
+        for (matcher: exitMatchers) {
+            nameSuiteSwitchCtx.addMatcher(matcher);
+        }
+
+        nameSuiteCtx.addMatcher(
+            lang:contextMatcherSwitchWith(nameMatcher, nameSuiteSwitchCtx, function(token, tokenCtx, newCtx) {
+                var names = tokenCtx.properties["artus.suite.ids"] ?: lang:arrayListOf();
+                names.add(token.text);
+                newCtx.properties["artus.suite.ids"] = names;
+            })
+        );
+        return nameSuiteCtx;
+    }
+
+    builders:put("artus.suite.name", builder);
+
+###

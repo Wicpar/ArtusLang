@@ -220,12 +220,21 @@ class LangUtils(private val ctx: ScriptContext) {
         ret
     })
 
-    fun contextMatcherSwitch(matcher: TokenMatcher, type: ContextType) = ContextMatcher(matcher, { _, context ->
-        context.parent?.child(type) ?: Context(type)
+    @JvmOverloads
+    fun contextMatcherSwitch(matcher: TokenMatcher, type: ContextType, inherit: Boolean = true) = ContextMatcher(matcher, { _, context ->
+        val ret = context.parent?.child(type) ?: Context(type)
+        if (inherit) {
+            ret.properties.putAll(context.properties)
+        }
+        ret
     })
 
-    fun contextMatcherSwitchWith(matcher: TokenMatcher, type: ContextType, closure: Closure) = ContextMatcher(matcher, { token, context ->
+    @JvmOverloads
+    fun contextMatcherSwitchWith(matcher: TokenMatcher, type: ContextType, closure: Closure, inherit: Boolean = true) = ContextMatcher(matcher, { token, context ->
         val ret = context.parent?.child(type) ?: Context(type)
+        if (inherit) {
+            ret.properties.putAll(context.properties)
+        }
         closure.execute(ctx, token, context, ret)
         ret
     })
@@ -277,7 +286,7 @@ class LangUtils(private val ctx: ScriptContext) {
             } else {
                 fs
             }
-        }
+        }.canonicalFile
         return ret
     }
     /**

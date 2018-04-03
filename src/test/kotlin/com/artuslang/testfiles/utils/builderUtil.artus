@@ -1,0 +1,6 @@
+###
+    var nsp = this:resolveNamespace("builders");
+    if (nsp == null) {
+        this:registerNamespace("builders", lang:hashMapOf());
+    }
+###

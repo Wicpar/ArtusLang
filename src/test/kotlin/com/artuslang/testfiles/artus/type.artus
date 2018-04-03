@@ -22,33 +22,33 @@
         lang:contextMatcherPop(bc)
     ), lang:arrayListOf(ignore));
 
-    var utils = lanh:hashMapOf();
+    var utils = lang:hashMapOf();
     this:registerNamespace("artus_type", utils);
     utils.put("builders", lang:arrayListOf(function(map) {
-        map.put("properties", lang:heritableMapOf());
+        map["properties"] = lang:heritableMapOf();
     }));
 
-    var typemap = lang:hashMapOf();
     var getType = function(key, features, filters) {
-        var map = typemap.get(key);
+
+        var node = typeTree.findNodeOrBuild(lang:pathOf(key, features, filters), {"".class: lang:nodeBuilder(function(val, features, filters) {
+            return lang:node(features, filters);
+        })});
+
+        var map = node.properties.get(type);
         if (map == null) {
             map = lang:hashMapOf();
-            for (builder: artus_type_builders) {
+            map.put("name", key);
+            map.put("node", node);
+            for (builder: utils.get("builders")) {
                 builder(map);
             }
-            map.put("name", key);
-
-            var node = typeTree.findNodeOrBuild(lang:pathOf(key, features, filters), {"".class: lang:nodeBuilder(function(val, features, filters) {
-                return lang:node(features, filters);
-            })});
             node.properties.put("type", map);
-            map.put("node", node);
-
-            typemap.put(key, map);
             //debug output
             if (this:get("debug") == true) {
                 log:println("artus.type: " + key);
             }
+        } else {
+            log:throw("type: " + key + "already defined");
         }
         return map;
     };
@@ -56,13 +56,15 @@
 
     var typeBuilder = function(token, tokenCtx, newCtx) {
         var name = tokenCtx.properties["artus.type.name"];
-        var ids = newCtx.properties["artus.path.ids"] ?: lang:arrayListOf();
+        var ids = lang:arrayListOf();
+        ids.addAll(newCtx.properties["artus.path.ids"] ?: lang:listOf());
         var features = newCtx.properties["artus.path.features"] ?: lang:arrayListOf();
         var filters = newCtx.properties["artus.path.filters"] ?: lang:arrayListOf();
         ids.add(name);
         newCtx.properties["artus.type.object"] = getType(ids, features, filters);
         newCtx.properties["artus.path.ids"] = ids;
     }
+    utils.put("typeBuilder", typeBuilder);
 
     var typeSwitchCtx = lang:contextType("artus.type.switch", lang:arrayListOf(
         lang:contextMatcherSwitchWith(bo, typeBodyCtx, typeBuilder)

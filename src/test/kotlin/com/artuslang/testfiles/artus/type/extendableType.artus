@@ -1,5 +1,8 @@
 ###
     lang:import("../type.artus");
+    lang:import("../fragments/nameSuite.artus");
+
+    var delimiterType = tokenType("delimiter");
 
     var col = literalMatcher(":", delimiterType);
     var com = literalMatcher(",", delimiterType);
@@ -7,16 +10,35 @@
     var dot = literalMatcher("\.", delimiterType);
 
     var ignore = contexts:get("artus.ignore");
+    var nameSuiteBuilder = builders:get("artus.suite.name");
 
-    var typeExtPathCtx = lang:contextType("artus.type.extends.path", lang:arrayListOf(
-        lang:contextMatcherSwitchWith(bo, typeBodyCtx, typeBuilder)
-    ), lang:arrayListOf(ignore));
+    artus_type:get("builders").add(function(map) {
+        map["parents"] = lang:arrayListOf();
+    });
+    var typeBuilder = artus_type:get("typeBuilder");
+    var typeBodyCtx = contexts:get("artus.type");
 
-    var typeExtCtx = lang:contextType("artus.type.extends", lang:arrayListOf(
-        lang:contextMatcherSwitchWith(bo, typeBodyCtx, typeBuilder)
-    ), lang:arrayListOf(ignore));
+    var typeExtCtx = nameSuiteBuilder("artus.type.extends", lang:arrayListOf(
+        lang:contextMatcherSwitchWith(bo, typeBodyCtx, function(token, tokenCtx, newCtx) {
+            typeBuilder(token, tokenCtx, newCtx);
+            var type = newCtx.properties["artus.type.object"];
+
+            var parents = tokenCtx.properties["artus.type.parents"] ?: lang:arrayListOf();
+            parents.add(tokenCtx.properties["artus.suite.ids"]);
+            tokenCtx.properties["artus.suite.ids"] = null;
+            type["parents"].addAll(parents);
+        }, false)
+    ));
+
+    typeExtCtx.addMatcher(
+        lang:contextMatcherSwitchWith(com, typeExtCtx, function(token, tokenCtx, newCtx) {
+            var parents = tokenCtx.properties["artus.type.parents"] ?: lang:arrayListOf();
+            parents.add(tokenCtx.properties["artus.suite.ids"]);
+            tokenCtx.properties["artus.suite.ids"] = null;
+            newCtx.properties["artus.type.parents"] = parents;
+        })
+    );
 
     var typeSwitchCtx = contexts:get("artus.type.switch");
-    typeSwitchCtx.addMatcher(lang:contextMatcherSwitchWith(col, typeExtCtx, function(token, tokenCtx, newCtx) {
-    }));
+    typeSwitchCtx.addMatcher(lang:contextMatcherSwitch(col, typeExtCtx));
 ###
