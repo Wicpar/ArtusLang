@@ -1,6 +1,24 @@
 ###
 /*
     a procedure is like a C macro in utility, but is not based on the syntax, but on an inner script
-    procedures are useful at generating regular and regulated data patterns, like a file format
+    procedures are useful at generating regular and regulated data patterns, like a file format.
+    functions will expand on this feature by allowing a return type and usability in an expression.
 */
+
+    lang:import("../utils/typesUtil.artus");
+    lang:import("../utils/literalMatcher.artus");
+    lang:import("../utils/contextUtil.artus");
+    lang:import("fragments/ignore.artus");
+    lang:import("fragments/fileBody.artus");
+    lang:import("matchers/name.artus");
+
+    var delimiterType = tokenType("delimiter");
+    var keywordType = tokenType("keyword");
+
+    var bo = literalMatcher("\{", delimiterType);
+    var bc = literalMatcher("\}", delimiterType);
+
+    var proc = literalMatcher("proc", keywordType);
+
+
 ###

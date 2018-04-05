@@ -28,7 +28,7 @@
             tokenCtx.properties["artus.suite.ids"] = null;
             type["parents"].addAll(parents);
         }, false),
-        function(context, ignores) {
+        function(context, ctxSwitch) {
             return lang:contextMatcherSwitchWith(com, context, function(token, tokenCtx, newCtx) {
                 var parents = tokenCtx.properties["artus.type.parents"] ?: lang:arrayListOf();
                 parents.add(tokenCtx.properties["artus.suite.ids"]);
