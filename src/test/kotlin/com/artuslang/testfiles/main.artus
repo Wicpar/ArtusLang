@@ -41,10 +41,10 @@ namespace types {
 }
 
 # lang:import("artus/using.artus");
-
+// using to create a path alias
 using a.b.c
 using a.b.c.d; using x.y.z
-using it as other, and.that as something
+using it as alias, and.that as something
 
 namespace /* eof multiline comment, bad practice but implemented for behavioral reasons.
 the context returned will expect completion of the namespace,
