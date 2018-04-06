@@ -20,7 +20,7 @@
     var builder = function(prefix, exitCtx) {
 
         var typeCtx = nameSuiteBuilder(prefix + ".generic.type", lang:arrayListOf(
-            lang:contextMatcherSwitch()
+            lang:contextMatcherSwitch(gt, exitCtx)
         ));
 
         var switchCtx = lang:contextType(prefix + ".generic.switch", lang:arrayListOf(
@@ -33,6 +33,7 @@
         ), lang:arrayListOf(ignore));
 
         switchCtx.addMatcher(lang:contextMatcherSwitch(com, genericCtx));
+        typeCtx.addMatcher(lang:contextMatcherSwitch(com, genericCtx));
 
         return genericCtx;
     }
