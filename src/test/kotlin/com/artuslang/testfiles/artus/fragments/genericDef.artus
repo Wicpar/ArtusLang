@@ -19,8 +19,14 @@
 
     var builder = function(prefix, exitCtx) {
 
+        var endWith = function(token, tokenCtx, newCtx) {
+
+        };
+
         var typeCtx = nameSuiteBuilder(prefix + ".generic.type", lang:arrayListOf(
-            lang:contextMatcherSwitch(gt, exitCtx)
+            lang:contextMatcherSwitchWith(gt, exitCtx, function(token, tokenCtx, newCtx) {
+
+            })
         ));
 
         var switchCtx = lang:contextType(prefix + ".generic.switch", lang:arrayListOf(
@@ -37,6 +43,5 @@
 
         return genericCtx;
     }
-
-    builders:put("artus.generic", builder);
+    builders:put("artus.generic.def", builder);
 ###
