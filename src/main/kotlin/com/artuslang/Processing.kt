@@ -371,6 +371,15 @@ class LangUtils(private val ctx: ScriptContext) {
     fun `is`(a: Any?, b: Any?): Boolean {
         return a?.javaClass == b?.javaClass
     }
+
+    var idx: Long = 0
+    fun uid(): Long {
+        return idx++
+    }
+
+    fun getOrPut(map: HashMap<Any?, Any?>, key: Any?, value: Any?): Any? {
+        return map.getOrPut(key, {value})
+    }
 }
 
 object Log {

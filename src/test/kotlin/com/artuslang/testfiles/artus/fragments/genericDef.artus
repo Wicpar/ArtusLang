@@ -19,13 +19,24 @@
 
     var builder = function(prefix, exitCtx) {
 
+        var ctxUID = lang:uid();
+
+        var switchGen = function(token, tokenCtx, newCtx) {
+            var scopeAlias = lang:getOrPut(newCtx.properties, "artus.scope.alias", lang:hashMapOf());
+            var curScope = lang:getOrPut(scopeAlias, ctxUID, lang:hashMapOf());
+            var ids = tokenCtx.properties["artus.suite.ids"] ?: lang:arrayListOf();
+            tokenCtx.properties["artus.suite.ids"] = null;
+            var name = tokenCtx.properties["artus.genericDef.current.name"];
+            curScope.put(name, ids);
+        };
+
         var endWith = function(token, tokenCtx, newCtx) {
+            var ctxAliases = lang:getOrPut(newCtx.properties, "artus.alias", lang:hashMapOf());
 
         };
 
         var typeCtx = nameSuiteBuilder(prefix + ".generic.type", lang:arrayListOf(
             lang:contextMatcherSwitchWith(gt, exitCtx, function(token, tokenCtx, newCtx) {
-
             })
         ));
 
@@ -35,7 +46,9 @@
         ), lang:arrayListOf(ignore));
 
         var genericCtx = lang:contextType(prefix + ".generic", lang:arrayListOf(
-            lang:contextMatcherSwitch(name, switchCtx)
+            lang:contextMatcherSwitchWith(name, switchCtx, function(token, tokenCtx, newCtx) {
+                newCtx.properties["artus.genericDef.current.name"] = token.text;
+            })
         ), lang:arrayListOf(ignore));
 
         switchCtx.addMatcher(lang:contextMatcherSwitch(com, genericCtx));
