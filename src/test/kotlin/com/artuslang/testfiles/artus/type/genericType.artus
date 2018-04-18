@@ -1,5 +1,0 @@
-###
-    lang:import("../type.artus");
-    lang:import("../fragments/nameSuite.artus");
-
-###
