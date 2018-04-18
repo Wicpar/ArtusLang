@@ -47,10 +47,8 @@
     var asCtx = lang:contextType("artus.using.as", lang:arrayListOf(
         lang:contextMatcherSwitchWith(nameMatcher, endCtx, function(token, ctx) {
             var names = ctx.properties["artus.suite.ids"];
-            var map = lang:hashMapOf();
-            map.putAll(ctx.parent.properties["artus.path.alias"] ?: lang:hashMapOf());
+            var map = lang:getOrPut(ctx.parent.properties, "artus.path.alias", lang:hashMapOf());
             map.put(token.text, names);
-            ctx.parent.properties["artus.path.alias"] = map;
             //debug output
             if (this:get("debug") == true) {
                 log:println("artus.alias: " + map);
