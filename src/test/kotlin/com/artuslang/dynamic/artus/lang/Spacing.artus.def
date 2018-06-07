@@ -1,0 +1,8 @@
+package artus.lang
+
+
+token space = "[\p{Z}\r]+";
+
+token nl = "\n";
+
+token allspace = space | nl;

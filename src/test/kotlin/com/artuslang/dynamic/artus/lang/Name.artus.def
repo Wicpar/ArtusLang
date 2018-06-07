@@ -1,0 +1,3 @@
+package artus.lang
+
+token name = "[\p{Pc}\p{L}\p{M}\p{No}][\p{Pc}\p{L}\p{M}\p{N}]*";
