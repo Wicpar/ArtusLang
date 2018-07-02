@@ -3,9 +3,6 @@ package artus.lang
 import artus.lang.Spaceable
 import artus.lang.Name
 
+interface inNamespace(path: Array<String>);
 
-interface inFile;
-
-interface inNamespace(currentScope: Array = []): extends inFile;
-
-token namespace: interlace allspace, extend inFile = "namespace" name "{" inNamespace(${name})* "}";
+token namespace: interlace(allspace), inNamespace = "namespace" name "{" inNamespace(path + [name[0]])* "}";

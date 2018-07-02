@@ -1,0 +1,16 @@
+package artus.lang
+
+import artus.lang.Spaceable
+import artus.lang.Name
+
+token package: interlace(space) = "package" name ("." name)* :: {
+    val path: Array<String> = name;
+
+    postInit(lctx: LocalContext, gctx: GlobalContext) {
+
+    }
+};
+
+token import: interlace(space) = "import" name ("." name)* :: {
+    val path: Array<String> = name;
+};
